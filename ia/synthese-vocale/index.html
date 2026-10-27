@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <script>/*cosmos-antiflash*/ try{var t=localStorage.getItem("cosmos-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("pre-dark");}catch(e){}</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synthèse vocale — Cosmos</title>
+  <link rel="icon" type="image/svg+xml" href="../../commun/img/favicon.svg">
+  <link rel="stylesheet" href="../../commun/css/style.css">
+</head>
+<body class="p-ia" data-nav="Outils IA">
+<script>if(document.documentElement.classList.contains("pre-dark"))document.body.classList.add("dark");</script>
+
+  <nav class="nav">
+    <a class="brand" href="../../index.html">
+      <span class="brand-logo">
+        <img class="logo-day" src="../../commun/img/logo-day.svg" alt="">
+        <img class="logo-night" src="../../commun/img/logo-night.svg" alt="">
+      </span>
+      <span class="brand-name">Cosmos</span>
+    </a>
+    <div class="nav-pills"></div>
+  </nav>
+
+  <main class="page">
+    <section class="hero">
+      <h1>Synthèse vocale</h1>
+      <p class="lead">Colle un texte et fais-le lire à voix haute. Deux moteurs : les voix de ton navigateur (dont l'accent canadien si installé) et une voix neuronale française (MMS). Tout se passe chez toi : rien n'est envoyé ailleurs.</p>
+    </section>
+
+    <section class="panneau" style="max-width:760px; margin:0 auto;">
+      <div id="indispo" style="display:none; background:#FFE5C2; color:#B26A00; border-radius:14px; padding:12px 16px; margin-bottom:20px; font-size:14px;">
+        ⚠️ Ton navigateur ne propose pas de voix native. La voix neuronale reste utilisable.
+      </div>
+
+      <label for="texte" style="font-weight:500;">Ton texte</label>
+      <textarea class="champ" id="texte" placeholder="Colle ou écris ici le texte à lire…" style="margin-top:8px;">Bonjour ! Colle ton texte ici, choisis une voix, puis clique sur Lire. Tu peux reculer ou avancer phrase par phrase pendant la lecture.</textarea>
+
+      <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-end; margin-top:18px;">
+        <label style="flex:1 1 240px;">Voix
+          <select id="voix" class="champ" style="margin-top:6px;"></select>
+        </label>
+        <label style="flex:1 1 150px;">Vitesse <span id="vitesseVal" style="color:var(--ink2);">1.0</span>
+          <input type="range" id="vitesse" min="0.5" max="2" step="0.1" value="1" style="width:100%; margin-top:10px;">
+        </label>
+        <label id="lblHauteur" style="flex:1 1 150px;">Hauteur <span id="hauteurVal" style="color:var(--ink2);">1.0</span>
+          <input type="range" id="hauteur" min="0" max="2" step="0.1" value="1" style="width:100%; margin-top:10px;">
+        </label>
+      </div>
+
+      <p class="statut" id="noteVoix" style="margin-top:12px; font-size:13px; display:none;"></p>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:18px;">
+        <button class="bouton" id="lire" type="button"><span class="material-symbols-rounded">play_arrow</span>Lire</button>
+        <button class="bouton ghost" id="prec" type="button" disabled title="Phrase précédente"><span class="material-symbols-rounded">skip_previous</span>Reculer</button>
+        <button class="bouton ghost" id="suiv" type="button" disabled title="Phrase suivante"><span class="material-symbols-rounded">skip_next</span>Avancer</button>
+        <button class="bouton ghost" id="pause" type="button" disabled><span class="material-symbols-rounded">pause</span>Pause</button>
+        <button class="bouton danger" id="stop" type="button" disabled><span class="material-symbols-rounded">stop</span>Stop</button>
+      </div>
+
+      <p class="statut" id="statut" style="margin-top:16px;"></p>
+
+      <div id="lecture" style="display:none; margin-top:16px; padding:16px 18px; border-radius:16px; background:var(--soft,rgba(122,106,140,.06)); line-height:1.7; font-size:16px;"></div>
+    </section>
+  </main>
+
+  <footer class="pied">Cosmos — fait avec ❤️ par Rosalyna</footer>
+  <button class="theme-toggle" id="themeToggle" type="button">
+    <span class="material-symbols-rounded" id="themeIcon" aria-hidden="true">dark_mode</span>
+    <span id="themeLabel">Mode nuit</span>
+  </button>
+  <script src="../../commun/js/theme.js"></script>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const synth = window.speechSynthesis;
+    const TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/transformers.min.js";
+    const NEURAL_VALUE = "neural:mms-fra";
+
+    const statut = (t) => ($("statut").textContent = t);
+
+    // ---------- Liste des voix ----------
+    let voix = [];
+    function peupler() {
+      const sel = $("voix");
+      const avant = sel.value;
+      sel.innerHTML = "";
+
+      const gN = document.createElement("optgroup");
+      gN.label = "Voix neuronale (française)";
+      const oN = document.createElement("option");
+      oN.value = NEURAL_VALUE;
+      oN.textContent = "MMS — français (neuronale)";
+      gN.appendChild(oN);
+      sel.appendChild(gN);
+
+      voix = synth ? synth.getVoices() : [];
+      const fr = voix.filter((v) => v.lang && v.lang.toLowerCase().startsWith("fr"));
+      const liste = fr.length ? fr : voix;
+      let ca = null;
+      if (liste.length) {
+        const gB = document.createElement("optgroup");
+        gB.label = "Voix du navigateur";
+        liste.forEach((v) => {
+          const o = document.createElement("option");
+          o.value = "nav:" + v.name;
+          o.textContent = `${v.name} (${v.lang})`;
+          gB.appendChild(o);
+        });
+        sel.appendChild(gB);
+        ca = liste.find((v) => v.lang && v.lang.toLowerCase() === "fr-ca");
+      }
+
+      if (avant && [...sel.options].some((o) => o.value === avant)) sel.value = avant;
+      else if (ca) sel.value = "nav:" + ca.name;
+      else sel.value = NEURAL_VALUE;
+      majNote();
+    }
+
+    function majNote() {
+      const val = $("voix").value;
+      const note = $("noteVoix");
+      const neural = val.startsWith("neural:");
+      $("lblHauteur").style.opacity = neural ? ".4" : "1";
+      $("hauteur").disabled = neural;
+      if (neural) {
+        note.textContent = "Voix neuronale française (MMS) : téléchargement unique au 1er usage, puis hors-ligne. Accent français neutre. Astuce : dans Microsoft Edge, la liste « Voix du navigateur » inclut des voix « Online (Natural) » très naturelles, dont le canadien (Sylvie, Antoine).";
+        note.style.display = "block";
+        return;
+      }
+      const fr = voix.filter((v) => v.lang && v.lang.toLowerCase().startsWith("fr"));
+      const ca = voix.find((v) => v.lang && v.lang.toLowerCase() === "fr-ca");
+      if (ca) note.style.display = "none";
+      else if (fr.length) {
+        note.textContent = "Aucune voix canadienne (fr-CA) installée — voix française de substitution. Pour la voix canadienne : Réglages Windows → Heure et langue → Voix → Ajouter des voix → Français (Canada). Les voix les plus naturelles apparaissent dans Microsoft Edge.";
+        note.style.display = "block";
+      } else if (!voix.length) {
+        note.textContent = "Aucune voix système détectée — utilise la voix neuronale ci-dessus.";
+        note.style.display = "block";
+      } else note.style.display = "none";
+    }
+
+    if (!synth) $("indispo").style.display = "block";
+    peupler();
+    if (synth) synth.onvoiceschanged = peupler;
+    $("voix").addEventListener("change", majNote);
+    $("vitesse").addEventListener("input", (e) => ($("vitesseVal").textContent = Number(e.target.value).toFixed(1)));
+    $("hauteur").addEventListener("input", (e) => ($("hauteurVal").textContent = Number(e.target.value).toFixed(1)));
+
+    // ---------- Outils audio ----------
+    function rawToWavBlob(raw) {
+      if (raw && typeof raw.toBlob === "function") { try { return raw.toBlob(); } catch (e) {} }
+      const data = raw.audio, sr = raw.sampling_rate || 16000, n = data.length;
+      const buf = new ArrayBuffer(44 + n * 2), dv = new DataView(buf);
+      const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+      ws(0, "RIFF"); dv.setUint32(4, 36 + n * 2, true); ws(8, "WAVE"); ws(12, "fmt ");
+      dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+      dv.setUint32(24, sr, true); dv.setUint32(28, sr * 2, true); dv.setUint16(32, 2, true);
+      dv.setUint16(34, 16, true); ws(36, "data"); dv.setUint32(40, n * 2, true);
+      let o = 44; for (let i = 0; i < n; i++) { const s = Math.max(-1, Math.min(1, data[i])); dv.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true); o += 2; }
+      return new Blob([buf], { type: "audio/wav" });
+    }
+
+    function decouper(t) {
+      const parts = t.match(/[^.!?…\n]+[.!?…]*\s*/g) || [t];
+      const out = []; let cur = "";
+      for (const p of parts) { if ((cur + p).length > 350 && cur) { out.push(cur); cur = p; } else cur += p; }
+      if (cur.trim()) out.push(cur);
+      return out.map((s) => s.trim()).filter(Boolean);
+    }
+
+    // ---------- Lecteur unifié (phrase par phrase) ----------
+    const P = { chunks: [], idx: 0, engine: null, stopped: false, paused: false, audio: null, url: null, tts: null, voiceName: null };
+
+    function labelPause(ico) { $("pause").querySelector("span").textContent = ico; }
+    function majBoutons(enLecture) {
+      $("lire").disabled = enLecture;
+      $("pause").disabled = $("stop").disabled = !enLecture;
+      majNav(enLecture);
+    }
+    function majNav(enLecture) {
+      $("prec").disabled = !enLecture || P.idx <= 0;
+      $("suiv").disabled = !enLecture || P.idx >= P.chunks.length - 1;
+    }
+    function renderChunk(i, range) {
+      const box = $("lecture"); box.style.display = "block";
+      const t = P.chunks[i];
+      if (range) {
+        const mark = document.createElement("mark");
+        mark.textContent = t.slice(range[0], range[1]);
+        mark.style.cssText = "background:linear-gradient(135deg,#A78BE8,#8CC7F0); color:#fff; border-radius:6px; padding:1px 3px;";
+        box.replaceChildren(document.createTextNode(t.slice(0, range[0])), mark, document.createTextNode(t.slice(range[1])));
+      } else box.textContent = t;
+    }
+    function finir() { majBoutons(false); statut("Terminé ✓"); $("lecture").style.display = "none"; }
+
+    async function ensureNeural() {
+      if (P.tts) return P.tts;
+      statut("Chargement du modèle neuronal français…");
+      const { pipeline } = await import(TRANSFORMERS_URL);
+      P.tts = await pipeline("text-to-speech", "Xenova/mms-tts-fra", {
+        progress_callback: (p) => { if (p.status === "progress" && p.total) statut(`Téléchargement du modèle : ${Math.round((p.loaded / p.total) * 100)} %`); },
+      });
+      return P.tts;
+    }
+
+    async function playIndex(i) {
+      if (P.stopped) return;
+      if (i < 0) i = 0;
+      if (i >= P.chunks.length) { finir(); return; }
+      P.idx = i; P.paused = false; labelPause("pause"); majNav(true); renderChunk(i);
+
+      if (P.engine === "neural") {
+        statut(`Synthèse… (${i + 1}/${P.chunks.length})`);
+        let out;
+        try { out = await P.tts(P.chunks[i]); }
+        catch (e) { majBoutons(false); statut("Erreur : " + e.message); return; }
+        if (P.stopped || P.idx !== i) return;
+        if (P.url) URL.revokeObjectURL(P.url);
+        P.url = URL.createObjectURL(rawToWavBlob(out));
+        P.audio = new Audio(P.url);
+        P.audio.playbackRate = Number($("vitesse").value);
+        P.audio.onended = () => { if (!P.stopped && P.idx === i) playIndex(i + 1); };
+        P.audio.onerror = () => { majBoutons(false); statut("Erreur de lecture audio."); };
+        statut(`Lecture… (${i + 1}/${P.chunks.length})`);
+        try { await P.audio.play(); } catch (e) {}
+      } else {
+        statut(`Lecture… (${i + 1}/${P.chunks.length})`);
+        const u = new SpeechSynthesisUtterance(P.chunks[i]);
+        const v = voix.find((x) => x.name === P.voiceName);
+        if (v) { u.voice = v; u.lang = v.lang; }
+        u.rate = Number($("vitesse").value); u.pitch = Number($("hauteur").value);
+        u.onboundary = (e) => {
+          if (P.idx !== i || (e.name && e.name !== "word")) return;
+          const d = e.charIndex; let f = d + (e.charLength || 0);
+          if (!e.charLength) { const m = P.chunks[i].slice(d).match(/^\S+/); f = d + (m ? m[0].length : 1); }
+          renderChunk(i, [d, f]);
+        };
+        u.onend = () => { if (!P.stopped && !P.paused && P.idx === i) playIndex(i + 1); };
+        u.onerror = (e) => { if (e.error !== "canceled" && e.error !== "interrupted") { majBoutons(false); statut("Erreur : " + e.error); } };
+        synth.speak(u);
+      }
+    }
+
+    function stopperCourant() {
+      if (synth) synth.cancel();
+      if (P.audio) { P.audio.onended = null; P.audio.pause(); }
+    }
+
+    function allerA(i) {
+      if (!P.chunks.length || P.stopped) return;
+      stopperCourant();
+      playIndex(Math.max(0, Math.min(P.chunks.length - 1, i)));
+    }
+
+    // ---------- Contrôles ----------
+    $("lire").addEventListener("click", async () => {
+      const texte = $("texte").value.trim();
+      if (!texte) { statut("Écris ou colle un texte d'abord."); return; }
+      stopperCourant();
+      P.stopped = false; P.paused = false; P.chunks = decouper(texte); P.idx = 0;
+      const val = $("voix").value;
+      majBoutons(true); labelPause("pause");
+      if (val.startsWith("neural:")) {
+        P.engine = "neural";
+        try { await ensureNeural(); }
+        catch (e) { majBoutons(false); statut("Échec du chargement du modèle : " + e.message); return; }
+        if (P.stopped) return;
+        playIndex(0);
+      } else {
+        P.engine = "browser"; P.voiceName = val.slice(4);
+        playIndex(0);
+      }
+    });
+
+    $("prec").addEventListener("click", () => allerA(P.idx - 1));
+    $("suiv").addEventListener("click", () => allerA(P.idx + 1));
+
+    $("pause").addEventListener("click", () => {
+      if (P.engine === "neural") {
+        if (P.audio && !P.audio.paused) { P.audio.pause(); P.paused = true; labelPause("play_arrow"); statut("En pause."); }
+        else if (P.audio) { P.audio.play(); P.paused = false; labelPause("pause"); statut("Lecture en cours…"); }
+      } else if (synth) {
+        if (synth.paused) { synth.resume(); P.paused = false; labelPause("pause"); statut("Lecture en cours…"); }
+        else { synth.pause(); P.paused = true; labelPause("play_arrow"); statut("En pause."); }
+      }
+    });
+
+    $("stop").addEventListener("click", () => {
+      P.stopped = true; stopperCourant(); majBoutons(false); statut("Arrêté."); $("lecture").style.display = "none";
+    });
+
+    window.addEventListener("beforeunload", stopperCourant);
+  </script>
+  <script src="../../commun/js/projects.js"></script>
+  <script src="../../commun/js/nav.js"></script>
+</body>
+</html>

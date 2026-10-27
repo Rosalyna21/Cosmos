@@ -1,0 +1,23 @@
+# ============================================================
+#  COSMOS — ce qui NE PART PAS sur GitHub
+#  Ce dossier `site/` EST le site publié : le .gitignore vit ici,
+#  à sa racine. Initialiser Git dans ce dossier.
+#  (docs/, archive/, Cosmos/ et les notes sont hors de `site/`,
+#   un cran au-dessus : ils ne concernent pas ce dépôt.)
+# ============================================================
+
+# --- Mon espace personnel : ne doit jamais être publié ---
+prive/
+
+# --- Mon atelier : pages en chantier tant qu'elles n'ont pas déménagé ---
+brouillons/
+
+# --- Sections pas encore prêtes pour le plancher (gardées en local, non publiées) ---
+dashboard/
+labo-ml/
+charges-fixes/
+
+# --- Fichiers créés par Windows / macOS ---
+Thumbs.db
+desktop.ini
+.DS_Store

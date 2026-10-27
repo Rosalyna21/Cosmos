@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <script>/*cosmos-antiflash*/ try{var t=localStorage.getItem("cosmos-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("pre-dark");}catch(e){}</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dessin libre — Cosmos</title>
+  <link rel="icon" type="image/svg+xml" href="../../../commun/img/favicon.svg">
+  <link rel="stylesheet" href="../../../commun/css/style.css">
+  <style>
+    body.p-atelier .page { max-width: none; padding: 18px 18px 60px; }
+    .at-hero { text-align: center; padding: 8px 0 18px; }
+    .at-hero h1 { font-size: clamp(30px, 5vw, 44px); }
+
+    .atelier-scene { display: flex; gap: 16px; align-items: stretch; }
+    .atelier-palette {
+      flex: 0 0 290px; width: 290px; align-self: flex-start;
+      background: var(--surface); border-radius: 22px; box-shadow: var(--shadow-card);
+      padding: 16px 18px; display: flex; flex-direction: column; gap: 16px;
+      max-height: calc(100vh - 140px); overflow-y: auto;
+    }
+    .at-grp { display: flex; flex-direction: column; gap: 9px; }
+    .at-lbl { font-family: 'Space Mono', monospace; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--label); }
+    .at-ctrls { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+
+    .at-seg { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--soft, #f1ecf7); border-radius: 999px; padding: 5px; }
+    .at-seg button { border: 0; background: none; cursor: pointer; font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 13px; color: var(--ink2); padding: 7px 13px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; transition: .15s; }
+    .at-seg button .material-symbols-rounded { font-size: 18px; }
+    .at-seg button.on { background: linear-gradient(135deg,#A78BE8,#8CC7F0); color: #fff; box-shadow: 0 8px 18px -10px rgba(124,92,255,.8); }
+
+    .at-outil { width: 44px; height: 44px; border-radius: 13px; border: 1.5px solid var(--line); background: var(--field, #fff); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: .15s; font-family: inherit; }
+    .at-outil .material-symbols-rounded { font-size: 23px; }
+    .at-outil:hover { border-color: #A78BE8; }
+    .at-outil.on { background: linear-gradient(135deg,#F472B6,#A855F7); color: #fff; border-color: transparent; box-shadow: 0 10px 20px -10px rgba(168,85,247,.85); }
+
+    .at-swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(255,255,255,.7); cursor: pointer; padding: 0; box-shadow: 0 2px 6px rgba(0,0,0,.18); transition: transform .12s; }
+    .at-swatch:hover { transform: scale(1.12); }
+    .at-swatch.on { outline: 3px solid var(--ink); outline-offset: 2px; }
+    .at-swatch[data-color="#ffffff"] { border-color: var(--line); }
+    .at-custom { background: conic-gradient(from 90deg, #ff4d4d, #ffd84d, #34d399, #22b4c4, #8cc7f0, #a855f7, #f472b6, #ff4d4d); border-color: rgba(255,255,255,.85); }
+    .at-hint { font-size: 11.5px; color: var(--label); font-style: italic; }
+
+    .at-slider-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+    .at-slider-row > .k { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--label); min-width: 62px; }
+    .at-size { flex: 1; min-width: 80px; accent-color: #A855F7; }
+    .at-val { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--ink2); min-width: 40px; text-align: right; }
+    .at-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink2); cursor: pointer; }
+    .at-check input { accent-color: #A855F7; width: 16px; height: 16px; }
+    .at-input { width: 76px; padding: 7px 9px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--field, #fff); color: var(--ink); font-family: 'Space Mono', monospace; font-size: 12.5px; }
+    .at-text-input { flex: 1; min-width: 120px; font-family: 'Fredoka', sans-serif; }
+    .at-select { width: 100%; padding: 8px 10px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--field, #fff); color: var(--ink); font-family: 'Fredoka', sans-serif; font-size: 13px; }
+    .at-select.sm { width: auto; flex: 1; }
+    .at-x { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--label); }
+
+    .at-btn { border: 0; cursor: pointer; font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 14px; color: #fff; padding: 11px 16px; border-radius: 14px; display: inline-flex; align-items: center; gap: 8px; transition: .15s; width: 100%; justify-content: center; }
+    .at-btn .material-symbols-rounded { font-size: 20px; }
+    .at-btn.png { background: linear-gradient(135deg,#34D399,#22B4C4); box-shadow: 0 10px 22px -12px rgba(34,180,196,.9); }
+    .at-btn.gif { background: linear-gradient(135deg,#FBBF24,#FF7A45); box-shadow: 0 10px 22px -12px rgba(255,140,60,.9); margin-top: 8px; }
+    .at-btn.ghost { background: var(--field,#fff); color: var(--ink); border: 1.5px solid var(--line); box-shadow: none; }
+    .at-btn.ghost:hover { border-color: #A78BE8; }
+    .at-btn:hover { filter: brightness(1.04); }
+    .at-btn-sm { font-size: 12.5px; padding: 7px 12px; width: auto; }
+
+    .toile { position: relative; flex: 1 1 auto; height: calc(100vh - 140px); min-height: 420px; border-radius: 22px; overflow: hidden; box-shadow: var(--shadow-card); background: #ece5f4; touch-action: none; border: 1px solid var(--line); }
+    .toile canvas { display: block; touch-action: none; }
+    .at-zoombar { position: absolute; left: 12px; bottom: 12px; z-index: 3; display: flex; align-items: center; gap: 2px; background: var(--surface); border-radius: 14px; padding: 5px; border: 1px solid var(--line); box-shadow: 0 8px 22px -12px rgba(80,60,120,.6); }
+    .at-zoombar button { border: 0; background: none; cursor: pointer; color: var(--ink); width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-family: 'Space Mono', monospace; font-size: 12px; }
+    .at-zoombar button:hover { background: var(--soft, #f1ecf7); }
+    .at-zoombar #zPct { width: auto; min-width: 70px; padding: 0 8px; }
+    .at-zoombar .material-symbols-rounded { font-size: 21px; }
+
+    .at-astuce { font-size: 13px; color: var(--ink2); margin: 16px auto 0; max-width: 920px; text-align: center; line-height: 1.6; }
+    .at-astuce b { color: var(--ink); }
+
+    .vivant-only { display: none; }
+    .p-atelier.is-living .vivant-only { display: inline-flex; }
+    .vivant-box { display: none; }
+    .p-atelier.is-living .vivant-box { display: flex; }
+    .bg-ctl { display: none; }
+    body.has-bg .bg-ctl { display: flex; }
+    .fill-ctl { display: none; }
+    body.tool-fill .fill-ctl { display: flex; }
+    .capture-ctl { display: none; }
+    body.tool-capture .capture-ctl { display: flex; }
+    .mandala-ctl { display: none; }
+    body.sym-mandala .mandala-ctl { display: flex; }
+    .sel-box { display: none; }
+    body.has-sel .sel-box { display: flex; }
+
+    @media (max-width: 760px) {
+      .atelier-scene { flex-direction: column; }
+      .atelier-palette { flex: none; width: auto; max-height: none; overflow: visible; }
+      .toile { height: 62vh; }
+    }
+  </style>
+</head>
+<body class="p-detente p-atelier" data-nav="Détente">
+<script>if(document.documentElement.classList.contains("pre-dark"))document.body.classList.add("dark");</script>
+
+  <nav class="nav">
+    <a class="brand" href="../../../index.html">
+      <span class="brand-logo">
+        <img class="logo-day" src="../../../commun/img/logo-day.svg" alt="">
+        <img class="logo-night" src="../../../commun/img/logo-night.svg" alt="">
+      </span>
+      <span class="brand-name">Cosmos</span>
+    </a>
+    <div class="nav-pills"></div>
+  </nav>
+
+  <main class="page">
+    <section class="hero at-hero">
+      <h1>Dessin libre</h1>
+      <p class="lead">Un canvas, des couleurs, et c'est tout. Laisse la main faire — sans objectif.</p>
+    </section>
+
+    <div class="atelier-scene">
+      <aside class="atelier-palette">
+
+        <div class="at-grp">
+          <span class="at-lbl">Mode</span>
+          <div class="at-seg" id="modeSeg">
+            <button type="button" data-mode="static" class="on"><span class="material-symbols-rounded" aria-hidden="true">image</span>Statique</button>
+            <button type="button" data-mode="living"><span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>Vivant</button>
+          </div>
+        </div>
+
+        <div class="at-grp">
+          <span class="at-lbl">Outils</span>
+          <div class="at-ctrls">
+            <button type="button" class="at-outil" data-tool="select" title="Sélection / objets" aria-label="Sélection"><span class="material-symbols-rounded" aria-hidden="true">arrow_selector_tool</span></button>
+            <button type="button" class="at-outil on" data-tool="brush" title="Pinceau" aria-label="Pinceau"><span class="material-symbols-rounded" aria-hidden="true">brush</span></button>
+            <button type="button" class="at-outil" data-tool="line" title="Ligne" aria-label="Ligne"><span class="material-symbols-rounded" aria-hidden="true">horizontal_rule</span></button>
+            <button type="button" class="at-outil" data-tool="rect" title="Rectangle" aria-label="Rectangle"><span class="material-symbols-rounded" aria-hidden="true">rectangle</span></button>
+            <button type="button" class="at-outil" data-tool="ellipse" title="Cercle / ellipse" aria-label="Cercle"><span class="material-symbols-rounded" aria-hidden="true">radio_button_unchecked</span></button>
+            <button type="button" class="at-outil" data-tool="triangle" title="Triangle" aria-label="Triangle"><span class="material-symbols-rounded" aria-hidden="true">change_history</span></button>
+            <button type="button" class="at-outil" data-tool="star" title="Étoile" aria-label="Étoile"><span class="material-symbols-rounded" aria-hidden="true">star</span></button>
+            <button type="button" class="at-outil" data-tool="fill" title="Remplissage (pot de peinture)" aria-label="Remplissage"><span class="material-symbols-rounded" aria-hidden="true">format_color_fill</span></button>
+            <button type="button" class="at-outil" data-tool="eraser" title="Gomme" aria-label="Gomme"><span class="material-symbols-rounded" aria-hidden="true">ink_eraser</span></button>
+            <button type="button" class="at-outil" data-tool="capture" title="Capturer une zone du dessin → objet" aria-label="Capturer une zone"><span class="material-symbols-rounded" aria-hidden="true">crop</span></button>
+            <button type="button" class="at-outil" data-tool="pan" title="Déplacer la vue (ou Espace + glisser)" aria-label="Déplacer la vue"><span class="material-symbols-rounded" aria-hidden="true">pan_tool</span></button>
+            <button type="button" class="at-outil vivant-only" data-tool="sparkle" title="Paillettes" aria-label="Paillettes"><span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span></button>
+          </div>
+          <div class="at-slider-row fill-ctl"><span class="k">Tolérance</span><input type="range" class="at-size" id="tol" min="0" max="60" value="15"><span class="at-val" id="tolVal">15</span></div>
+          <span class="at-hint fill-ctl">clique dans une zone fermée pour la remplir</span>
+          <label class="at-check capture-ctl"><input type="checkbox" id="cutOrig" checked> effacer la zone d'origine (couper)</label>
+          <span class="at-hint capture-ctl">encadre une zone du dessin : elle devient un objet (fond transparent)</span>
+        </div>
+
+        <div class="at-grp">
+          <span class="at-lbl">Ajouter un objet</span>
+          <div class="at-ctrls">
+            <select class="at-select sm" id="shapeKind" aria-label="Forme à ajouter">
+              <option value="rect">Rectangle</option>
+              <option value="ellipse">Cercle</option>
+              <option value="triangle">Triangle</option>
+              <option value="star">Étoile</option>
+              <option value="line">Ligne</option>
+            </select>
+            <button type="button" class="at-outil" id="btnAddShape" title="Ajouter la forme" aria-label="Ajouter la forme"><span class="material-symbols-rounded" aria-hidden="true">add</span></button>
+          </div>
+          <div class="at-ctrls">
+            <input type="text" class="at-input at-text-input" id="objText" placeholder="Un mot, une phrase…" maxlength="80">
+            <button type="button" class="at-outil" id="btnAddText" title="Ajouter le texte" aria-label="Ajouter le texte"><span class="material-symbols-rounded" aria-hidden="true">text_fields</span></button>
+          </div>
+          <div class="at-ctrls">
+            <button type="button" class="at-btn ghost at-btn-sm" id="btnObjImg"><span class="material-symbols-rounded" aria-hidden="true">add_photo_alternate</span>Image en objet</button>
+            <input type="file" id="objImgFile" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+          </div>
+          <span class="at-hint">ou l'outil <b>Capturer</b> (✂) pour prendre un bout de ton dessin</span>
+        </div>
+
+        <div class="at-grp sel-box" data-tab="objets">
+          <span class="at-lbl">Objet sélectionné</span>
+          <div class="at-ctrls">
+            <button type="button" class="at-outil" id="btnDup" title="Dupliquer" aria-label="Dupliquer"><span class="material-symbols-rounded" aria-hidden="true">content_copy</span></button>
+            <button type="button" class="at-outil" id="btnDel" title="Supprimer (Suppr)" aria-label="Supprimer"><span class="material-symbols-rounded" aria-hidden="true">delete</span></button>
+            <button type="button" class="at-outil" id="btnFront" title="Mettre devant" aria-label="Devant"><span class="material-symbols-rounded" aria-hidden="true">flip_to_front</span></button>
+            <button type="button" class="at-outil" id="btnBack" title="Mettre derrière" aria-label="Derrière"><span class="material-symbols-rounded" aria-hidden="true">flip_to_back</span></button>
+            <button type="button" class="at-outil" id="btnSimilar" title="Sélectionner les semblables (même type + couleur)" aria-label="Sélectionner les semblables"><span class="material-symbols-rounded" aria-hidden="true">filter_alt</span></button>
+          </div>
+          <span class="at-hint">Couleur, Remplissage, Taille et Opacité s'appliquent à la sélection. <b>Semblables</b> (entonnoir) = tous les objets de même type et couleur.</span>
+        </div>
+
+        <div class="at-grp sel-box" data-tab="objets">
+          <span class="at-lbl">Mouvement</span>
+          <select class="at-select" id="motionKind" aria-label="Type de mouvement">
+            <option value="none">Aucun (immobile)</option>
+            <option value="float">Flottement (haut-bas)</option>
+            <option value="spin">Rotation</option>
+            <option value="pulse">Pulsation</option>
+            <option value="orbit">Orbite</option>
+            <option value="sway">Balancement</option>
+            <option value="blink">Clignotement</option>
+          </select>
+          <div class="at-slider-row"><span class="k">Vitesse</span><input type="range" class="at-size" id="motionSpeed" min="1" max="6" value="2"><span class="at-val" id="motionSpeedVal">2</span></div>
+          <div class="at-slider-row"><span class="k">Amplitude</span><input type="range" class="at-size" id="motionAmp" min="5" max="200" value="60"><span class="at-val" id="motionAmpVal">60</span></div>
+          <span class="at-hint">se joue en mode <b>Vivant</b> · exporté en GIF</span>
+        </div>
+
+        <div class="at-grp" data-tab="peindre objets">
+          <span class="at-lbl">Forme</span>
+          <div class="at-ctrls">
+            <div class="at-seg" id="fillSeg">
+              <button type="button" data-fill="0" class="on">Contour</button>
+              <button type="button" data-fill="1">Rempli</button>
+            </div>
+          </div>
+          <span class="at-hint">formes peintes + objets</span>
+        </div>
+
+        <div class="at-grp" data-tab="peindre">
+          <span class="at-lbl">Symétrie</span>
+          <div class="at-ctrls">
+            <div class="at-seg" id="symSeg">
+              <button type="button" data-sym="none" class="on">Aucune</button>
+              <button type="button" data-sym="mirror">Miroir</button>
+              <button type="button" data-sym="quad">×4</button>
+              <button type="button" data-sym="mandala">Mandala</button>
+            </div>
+          </div>
+          <div class="at-slider-row mandala-ctl"><span class="k">Branches</span><input type="range" class="at-size" id="branches" min="2" max="24" value="6"><span class="at-val" id="branchesVal">6</span></div>
+          <label class="at-check mandala-ctl"><input type="checkbox" id="mirrorChk" checked> Reflet (kaléidoscope)</label>
+        </div>
+
+        <div class="at-grp" data-tab="peindre objets">
+          <span class="at-lbl">Couleur</span>
+          <div class="at-ctrls">
+            <button class="at-swatch on" data-color="#A855F7" style="background:#A855F7" aria-label="violet"></button>
+            <button class="at-swatch" data-color="#7C5CFF" style="background:#7C5CFF" aria-label="indigo"></button>
+            <button class="at-swatch" data-color="#8CC7F0" style="background:#8CC7F0" aria-label="ciel"></button>
+            <button class="at-swatch" data-color="#34D399" style="background:#34D399" aria-label="vert"></button>
+            <button class="at-swatch" data-color="#22B4C4" style="background:#22B4C4" aria-label="turquoise"></button>
+            <button class="at-swatch" data-color="#FBBF24" style="background:#FBBF24" aria-label="jaune"></button>
+            <button class="at-swatch" data-color="#FF7A45" style="background:#FF7A45" aria-label="orange"></button>
+            <button class="at-swatch" data-color="#F472B6" style="background:#F472B6" aria-label="rose"></button>
+            <button class="at-swatch" data-color="#EC4899" style="background:#EC4899" aria-label="magenta"></button>
+            <button class="at-swatch" data-color="#5b4770" style="background:#5b4770" aria-label="prune"></button>
+            <button class="at-swatch" data-color="#ffffff" style="background:#ffffff" aria-label="blanc"></button>
+            <button class="at-swatch at-custom" id="customBtn" type="button" title="Couleur personnalisée (roue + RGB/hex)" aria-label="Couleur personnalisée"></button>
+            <input type="color" id="customColor" value="#A855F7" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+          </div>
+        </div>
+
+        <div class="at-grp" data-tab="peindre objets">
+          <span class="at-lbl">Trait</span>
+          <div class="at-slider-row"><span class="k">Taille</span><input type="range" class="at-size" id="size" min="1" max="200" value="10"><span class="at-val" id="sizeVal">10</span></div>
+          <div class="at-slider-row"><span class="k">Opacité</span><input type="range" class="at-size" id="opacity" min="5" max="100" value="100"><span class="at-val" id="opacityVal">100%</span></div>
+        </div>
+
+        <div class="at-grp" data-tab="scene">
+          <span class="at-lbl">Toile</span>
+          <select class="at-select" id="docPreset" aria-label="Format de la toile">
+            <option value="">Choisir un format…</option>
+            <option value="screen">Taille de l'écran</option>
+            <option value="1080x1080">Carré — 1080 × 1080</option>
+            <option value="1920x1080">Paysage HD — 1920 × 1080</option>
+            <option value="1080x1920">Portrait (story) — 1080 × 1920</option>
+            <option value="2480x3508">A4 portrait 300 dpi — 2480 × 3508</option>
+            <option value="3508x2480">A4 paysage 300 dpi — 3508 × 2480</option>
+            <option value="4000x4000">Grand carré — 4000 × 4000</option>
+          </select>
+          <div class="at-ctrls">
+            <input type="number" class="at-input" id="docW" min="64" max="4000" aria-label="Largeur en pixels">
+            <span class="at-x">×</span>
+            <input type="number" class="at-input" id="docH" min="64" max="4000" aria-label="Hauteur en pixels">
+            <button type="button" class="at-btn ghost at-btn-sm" id="btnDocApply">Appliquer</button>
+          </div>
+          <span class="at-hint">en pixels (64 à 4000) — le dessin est gardé et recentré</span>
+        </div>
+
+        <div class="at-grp" data-tab="scene">
+          <span class="at-lbl">Image de fond</span>
+          <div class="at-ctrls">
+            <button type="button" class="at-btn ghost at-btn-sm" id="btnImg"><span class="material-symbols-rounded" aria-hidden="true">add_photo_alternate</span>Choisir une image</button>
+            <button type="button" class="at-btn ghost at-btn-sm bg-ctl" id="btnImgDel"><span class="material-symbols-rounded" aria-hidden="true">hide_image</span>Retirer</button>
+            <input type="file" id="imgFile" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+          </div>
+          <div class="at-slider-row bg-ctl"><span class="k">Rotation</span><input type="range" class="at-size" id="bgRot" min="0" max="360" value="0"><span class="at-val" id="bgRotVal">0°</span></div>
+          <div class="at-slider-row bg-ctl"><span class="k">Opacité</span><input type="range" class="at-size" id="bgAlpha" min="5" max="100" value="55"><span class="at-val" id="bgAlphaVal">55%</span></div>
+        </div>
+
+        <div class="at-grp vivant-box" data-tab="scene">
+          <span class="at-lbl">Paillettes — forme</span>
+          <div class="at-ctrls">
+            <div class="at-seg" id="vivShapeSeg">
+              <button type="button" data-vs="star" class="on">Étoile</button>
+              <button type="button" data-vs="circle">Rond</button>
+              <button type="button" data-vs="heart">Cœur</button>
+            </div>
+          </div>
+          <div class="at-slider-row"><span class="k">Densité</span><input type="range" class="at-size" id="vivDens" min="1" max="6" value="2"><span class="at-val" id="vivDensVal">2</span></div>
+          <span class="at-lbl" style="margin-top:4px;">Sens</span>
+          <div class="at-ctrls">
+            <div class="at-seg" id="vivSensSeg">
+              <button type="button" data-vd="up" class="on">Montée</button>
+              <button type="button" data-vd="down">Chute</button>
+              <button type="button" data-vd="burst">Explosion</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="at-grp">
+          <span class="at-lbl">Actions</span>
+          <div class="at-ctrls">
+            <button type="button" class="at-outil" id="btnUndo" title="Annuler (Ctrl+Z)" aria-label="Annuler"><span class="material-symbols-rounded" aria-hidden="true">undo</span></button>
+            <button type="button" class="at-outil" id="btnClear" title="Tout effacer" aria-label="Tout effacer"><span class="material-symbols-rounded" aria-hidden="true">delete_sweep</span></button>
+          </div>
+        </div>
+
+        <div class="at-grp">
+          <span class="at-lbl">Garder</span>
+          <button type="button" class="at-btn png" id="btnPng"><span class="material-symbols-rounded" aria-hidden="true">download</span>Enregistrer l'image</button>
+          <button type="button" class="at-btn gif vivant-only" id="btnGif"><span class="material-symbols-rounded" aria-hidden="true">movie</span>Enregistrer le GIF</button>
+        </div>
+
+      </aside>
+
+      <div class="toile" id="toile">
+        <div class="at-zoombar" aria-label="Zoom">
+          <button type="button" id="zOut" title="Dézoomer" aria-label="Dézoomer"><span class="material-symbols-rounded" aria-hidden="true">zoom_out</span></button>
+          <button type="button" id="zPct" title="Revenir à 100 %">100 %</button>
+          <button type="button" id="zIn" title="Zoomer" aria-label="Zoomer"><span class="material-symbols-rounded" aria-hidden="true">zoom_in</span></button>
+          <button type="button" id="zFit" title="Voir toute la toile" aria-label="Voir toute la toile"><span class="material-symbols-rounded" aria-hidden="true">fit_screen</span></button>
+        </div>
+      </div>
+    </div>
+
+    <p class="at-astuce">
+      <b>Peindre</b> : pinceau, formes, pot de peinture, gomme (au pixel). <b>Objets</b> : ajoute des formes, du texte, des images ou un bout capturé de ton dessin,
+      puis l'outil <b>Sélection</b> (flèche) pour les déplacer, tourner, redimensionner — et leur donner un <b>mouvement</b> qui se joue en mode <b>Vivant</b> (export GIF).<br>
+      <b>Zoom</b> : molette / boutons / deux doigts (× 128). <b>Se déplacer</b> : Main, Espace + glisser, clic molette. <b>Ctrl+Z</b> annule. Tout reste sur ton ordinateur.
+    </p>
+  </main>
+
+  <footer class="pied">Cosmos — fait avec ❤️ par Rosalyna · <a class="pied-lien" href="../../../donnees/index.html">Mes données</a></footer>
+  <button class="theme-toggle" id="themeToggle" type="button">
+    <span class="material-symbols-rounded" id="themeIcon" aria-hidden="true">dark_mode</span>
+    <span id="themeLabel">Mode nuit</span>
+  </button>
+
+  <script src="../../../commun/js/vendor/p5.min.js"></script>
+  <script>
+  /* ====================================================================
+     DESSIN LIBRE — p5.js (mode instance)
+     Couche PEINTURE (pixels) : papier → image de fond → pg → paillettes.
+     Couche OBJETS (vectoriels) par-dessus : formes/texte/images/vignettes,
+       sélectionnables, déplaçables, avec un mouvement en boucle (mode Vivant).
+     ==================================================================== */
+  (function () {
+    const PAPER = '#ffffff';
+    const COLORS = ['#A855F7','#7C5CFF','#8CC7F0','#34D399','#22B4C4','#FBBF24','#FF7A45','#F472B6','#EC4899','#5b4770','#ffffff'];
+    const ZMIN = 0.05, ZMAX = 128, DOCMIN = 64, DOCMAX = 4000, LOOP = 4000;
+    const state = {
+      tool: 'brush', color: '#A855F7', size: 10, opacity: 100, mode: 'static',
+      fill: false, sym: 'none', branches: 6, mirror: true, tol: 15,
+      bgRot: 0, bgAlpha: 55, vivShape: 'star', vivDens: 2, vivSens: 'up',
+      shapeKind: 'rect', motionKind: 'none', motionSpeed: 2, motionAmp: 60, cutCapture: true
+    };
+    const holder = document.getElementById('toile');
+    const api = {};
+    const view = { zoom: 1, panX: 0, panY: 0, fit: true };
+    let docW = 800, docH = 600;
+    let pg, layer, bgImage = null, particles = [], undoStack = [], lastAmbient = 0;
+    let objects = [], sel = [], nextId = 1;
+    let drag = null, pinch = null, spaceDown = false, cnvElt = null;
+    const PAINT = ['brush', 'line', 'rect', 'ellipse', 'triangle', 'star'];
+    const SHAPES = ['line', 'rect', 'ellipse', 'triangle', 'star'];
+    const isShape = (t) => SHAPES.includes(t);
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+    const sketch = (s) => {
+      const newLayer = (w, h) => { const g = s.createGraphics(w, h); g.pixelDensity(1); return g; };
+      const toDoc = (x, y) => ({ x: (x - view.panX) / view.zoom, y: (y - view.panY) / view.zoom });
+      const toScr = (x, y) => ({ x: view.panX + x * view.zoom, y: view.panY + y * view.zoom });
+      const refresh = () => { if (pg && state.mode === 'static') s.redraw(); };
+      const pScale = () => Math.max(1, Math.min(docW, docH) / 700);
+      const animU = () => (s.millis() % LOOP) / LOOP;
+
+      s.setup = () => {
+        const w = Math.max(200, holder.clientWidth | 0), h = Math.max(200, holder.clientHeight | 0);
+        const c = s.createCanvas(w, h); c.parent(holder); cnvElt = c.elt;
+        s.pixelDensity(1);
+        docW = w; docH = h;
+        pg = newLayer(docW, docH); layer = newLayer(docW, docH);
+        fitView(); syncDocInputs(); setCursor();
+        s.noLoop();
+      };
+
+      s.draw = () => {
+        const dark = document.body.classList.contains('dark');
+        s.background(dark ? '#221b35' : '#ece5f4');
+        const ctx = s.drawingContext;
+        const animate = state.mode === 'living', u = animate ? animU() : 0;
+        s.push();
+        s.translate(view.panX, view.panY); s.scale(view.zoom);
+        ctx.save();
+        ctx.beginPath(); ctx.rect(0, 0, docW, docH); ctx.clip();
+        s.noStroke(); s.fill(PAPER); s.rect(0, 0, docW, docH);
+        ctx.imageSmoothingEnabled = view.zoom < 3;
+        if (bgImage) drawBg(s);
+        s.image(pg, 0, 0);
+        if (drag && (drag.kind === 'brush' || drag.kind === 'shape')) { ctx.globalAlpha = state.opacity / 100; s.image(layer, 0, 0); ctx.globalAlpha = 1; }
+        for (const o of objects) drawObject(s, o, u, animate);
+        if (animate) {
+          const interval = Math.max(3, 14 - state.vivDens * 2), cap = 60 + state.vivDens * 50;
+          if (s.frameCount - lastAmbient > interval && particles.length < cap) { spawn(s.random(docW), s.random(docH), true); lastAmbient = s.frameCount; }
+          stepParticles();
+        }
+        ctx.restore();
+        if (docW * view.zoom < s.width - 1 || docH * view.zoom < s.height - 1) { s.noFill(); s.stroke(120, 100, 150, 80); s.strokeWeight(1 / view.zoom); s.rect(0, 0, docW, docH); }
+        if (state.mode === 'static' && state.tool === 'select' && sel.length) drawMotionGuides();
+        s.pop();
+        if (state.tool === 'select' && state.mode === 'static') drawHandles();
+        if (drag && (drag.kind === 'marquee' || drag.kind === 'capture')) drawMarquee();
+      };
+
+      /* ---------------- Entrées ---------------- */
+      s.mousePressed = (e) => { if (!e || e.target !== cnvElt || e.button === 2) return; startDrag(s.mouseX, s.mouseY, e.button === 1); return false; };
+      s.mouseDragged = (e) => { if (!drag) return; if (e && e.type === 'mousemove' && e.buttons === 0) { endDrag(); return; } moveDrag(s.mouseX, s.mouseY); return false; };
+      s.mouseReleased = () => { if (drag) endDrag(); };
+      s.touchStarted = (e) => { if (!e || e.target !== cnvElt) return; if (s.touches.length >= 2) { cancelDrag(); startPinch(); return false; } startDrag(s.mouseX, s.mouseY, false); return false; };
+      s.touchMoved = () => { if (pinch) { if (s.touches.length >= 2) movePinch(); return false; } if (drag) { moveDrag(s.mouseX, s.mouseY); return false; } };
+      s.touchEnded = () => { if (pinch) { if (s.touches.length < 2) pinch = null; return false; } if (drag) endDrag(); };
+      s.mouseWheel = (e) => {
+        if (!e || e.target !== cnvElt) return;
+        const d = e.deltaMode === 1 ? e.delta * 33 : e.delta;
+        const mx = typeof e.offsetX === 'number' ? e.offsetX : s.mouseX, my = typeof e.offsetY === 'number' ? e.offsetY : s.mouseY;
+        zoomAt(Math.exp(-d * 0.0015), mx, my); return false;
+      };
+      s.keyPressed = (e) => {
+        const el = document.activeElement, tag = el ? el.tagName : '';
+        if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+        if (e.key === ' ') { if (tag === 'BUTTON') el.blur(); spaceDown = true; setCursor(); return false; }
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { undo(); return false; }
+        if ((e.key === 'Delete' || e.key === 'Backspace') && sel.length) { deleteSel(); return false; }
+      };
+      s.keyReleased = (e) => { if (e.key === ' ') { spaceDown = false; setCursor(); return false; } };
+      s.windowResized = () => { const w = holder.clientWidth | 0, h = holder.clientHeight | 0; if (w < 50 || h < 50) return; s.resizeCanvas(w, h); if (view.fit) fitView(); refresh(); };
+
+      /* ---------------- Vue ---------------- */
+      function fitView() { const z = Math.min(s.width / docW, s.height / docH); view.zoom = clamp(z, ZMIN, ZMAX); view.panX = (s.width - docW * view.zoom) / 2; view.panY = (s.height - docH * view.zoom) / 2; view.fit = true; updateZoomLabel(); }
+      function zoomAt(f, mx, my) { const nz = clamp(view.zoom * f, ZMIN, ZMAX); const dx = (mx - view.panX) / view.zoom, dy = (my - view.panY) / view.zoom; view.zoom = nz; view.panX = mx - dx * nz; view.panY = my - dy * nz; view.fit = false; updateZoomLabel(); refresh(); }
+      function updateZoomLabel() { const el = document.getElementById('zPct'); if (el) el.textContent = Math.round(view.zoom * 100).toLocaleString('fr-FR') + ' %'; }
+      function startPinch() { const a = s.touches[0], b = s.touches[1]; pinch = { d: Math.hypot(b.x - a.x, b.y - a.y) || 1, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, z: view.zoom, px: view.panX, py: view.panY }; }
+      function movePinch() { const a = s.touches[0], b = s.touches[1]; const d = Math.hypot(b.x - a.x, b.y - a.y) || 1, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; const nz = clamp(pinch.z * d / pinch.d, ZMIN, ZMAX); const dx = (pinch.mx - pinch.px) / pinch.z, dy = (pinch.my - pinch.py) / pinch.z; view.zoom = nz; view.panX = mx - dx * nz; view.panY = my - dy * nz; view.fit = false; updateZoomLabel(); refresh(); }
+      function setCursor() {
+        if (!cnvElt) return;
+        const panning = drag && drag.kind === 'pan', panReady = spaceDown || state.tool === 'pan';
+        cnvElt.style.cursor = panning ? 'grabbing' : panReady ? 'grab' : state.tool === 'select' ? 'default' : state.tool === 'fill' ? 'cell' : 'crosshair';
+      }
+
+      /* ---------------- Objets : rendu ---------------- */
+      function motionOffset(o, u, animate) {
+        let ox = 0, oy = 0, rot = 0, sc = 1, al = 1;
+        const m = o.motion;
+        if (animate && m && m.kind !== 'none') {
+          const w = 2 * Math.PI * m.speed * u;
+          if (m.kind === 'float') oy = m.amp * Math.sin(w);
+          else if (m.kind === 'orbit') { ox = m.amp * Math.cos(w); oy = m.amp * Math.sin(w); }
+          else if (m.kind === 'pulse') sc = 1 + (m.amp / 100) * Math.sin(w);
+          else if (m.kind === 'sway') rot = (m.amp * 0.5) * Math.sin(w);
+          else if (m.kind === 'spin') rot = 360 * m.speed * u;
+          else if (m.kind === 'blink') al = 0.55 + 0.45 * Math.sin(w);
+        }
+        return { ox, oy, rot, sc, al };
+      }
+      function drawObject(g, o, u, animate) {
+        const mo = motionOffset(o, u, animate);
+        g.push();
+        g.translate(o.x + mo.ox, o.y + mo.oy);
+        g.rotate((o.rot + mo.rot) * Math.PI / 180);
+        g.scale(mo.sc);
+        const a = (o.opacity / 100) * mo.al;
+        const w = o.w, h = o.h, col = s.color(o.color); col.setAlpha(a * 255);
+        if (o.type === 'image') {
+          const dc = g.drawingContext, ga = dc.globalAlpha; dc.globalAlpha = ga * a;
+          g.imageMode(s.CENTER); g.image(o.img, 0, 0, w, h); dc.globalAlpha = ga;
+        } else if (o.type === 'text') {
+          g.noStroke(); g.fill(col); g.textAlign(s.CENTER, s.CENTER); g.textFont(o.font); g.textSize(o.size); g.text(o.text, 0, 0);
+        } else if (o.type === 'line') {
+          g.stroke(col); g.strokeWeight(o.lineW); g.strokeCap(s.ROUND); g.line(-w / 2, -h / 2, w / 2, h / 2);
+        } else {
+          if (o.fill) { g.fill(col); g.noStroke(); } else { g.noFill(); g.stroke(col); g.strokeWeight(o.lineW); g.strokeJoin(s.ROUND); }
+          if (o.type === 'rect') g.rect(-w / 2, -h / 2, w, h, 8);
+          else if (o.type === 'ellipse') g.ellipse(0, 0, w, h);
+          else if (o.type === 'triangle') g.triangle(0, -h / 2, -w / 2, h / 2, w / 2, h / 2);
+          else if (o.type === 'star') { const r = Math.min(w, h) / 2; g.beginShape(); for (let i = 0; i < 10; i++) { const an = -Math.PI / 2 + i * Math.PI / 5, rr = (i % 2 === 0) ? r : r * 0.45; g.vertex(Math.cos(an) * rr, Math.sin(an) * rr); } g.endShape(s.CLOSE); }
+        }
+        g.pop();
+      }
+
+      /* ---------------- Objets : sélection, poignées ---------------- */
+      function corners(o) {   // en coordonnées document (au repos)
+        const c = Math.cos(o.rot * Math.PI / 180), sn = Math.sin(o.rot * Math.PI / 180), hw = o.w / 2, hh = o.h / 2;
+        return [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(([x, y]) => ({ x: o.x + x * c - y * sn, y: o.y + x * sn + y * c }));
+      }
+      function toLocal(o, px, py) { const c = Math.cos(-o.rot * Math.PI / 180), sn = Math.sin(-o.rot * Math.PI / 180), dx = px - o.x, dy = py - o.y; return { x: dx * c - dy * sn, y: dx * sn + dy * c }; }
+      function hitObject(px, py) {
+        for (let i = objects.length - 1; i >= 0; i--) { const o = objects[i], l = toLocal(o, px, py); if (Math.abs(l.x) <= o.w / 2 + 4 && Math.abs(l.y) <= o.h / 2 + 4) return o; }
+        return null;
+      }
+      function handlePoints(o) {           // en pixels écran
+        const cs = corners(o).map((p) => toScr(p.x, p.y));
+        const topMid = { x: (cs[0].x + cs[1].x) / 2, y: (cs[0].y + cs[1].y) / 2 };
+        const ctr = toScr(o.x, o.y);
+        let dx = topMid.x - ctr.x, dy = topMid.y - ctr.y; const len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
+        const rot = { x: topMid.x + dx * 26, y: topMid.y + dy * 26 };
+        return { corners: cs, rot };
+      }
+      function drawHandles() {
+        if (!sel.length) return;
+        s.push();
+        if (sel.length === 1) {
+          const o = sel[0], hp = handlePoints(o);
+          s.noFill(); s.stroke('#A855F7'); s.strokeWeight(1.5);
+          s.beginShape(); hp.corners.forEach((p) => s.vertex(p.x, p.y)); s.endShape(s.CLOSE);
+          const topMid = { x: (hp.corners[0].x + hp.corners[1].x) / 2, y: (hp.corners[0].y + hp.corners[1].y) / 2 };
+          s.line(topMid.x, topMid.y, hp.rot.x, hp.rot.y);
+          s.fill('#fff'); s.stroke('#A855F7');
+          hp.corners.forEach((p) => s.rect(p.x - 5, p.y - 5, 10, 10, 2));
+          s.circle(hp.rot.x, hp.rot.y, 12);
+        } else {
+          let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+          sel.forEach((o) => corners(o).forEach((p) => { const sp = toScr(p.x, p.y); x0 = Math.min(x0, sp.x); y0 = Math.min(y0, sp.y); x1 = Math.max(x1, sp.x); y1 = Math.max(y1, sp.y); }));
+          s.noFill(); s.stroke('#A855F7'); s.strokeWeight(1.5); s.drawingContext.setLineDash([6, 5]);
+          s.rect(x0, y0, x1 - x0, y1 - y0); s.drawingContext.setLineDash([]);
+        }
+        s.pop();
+      }
+      function drawMarquee() {
+        s.push(); s.noFill(); s.stroke('#7C5CFF'); s.strokeWeight(1.5); s.drawingContext.setLineDash([6, 4]);
+        const a = toScr(drag.x0, drag.y0), b = toScr(drag.x1, drag.y1);
+        s.rect(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.abs(b.x - a.x), Math.abs(b.y - a.y));
+        s.drawingContext.setLineDash([]); s.pop();
+      }
+
+      /* ---------------- Aperçu des mouvements (mode Statique) ----------------
+         Fantômes en pointillé montrant où/comment l'objet sélectionné va bouger. */
+      function gBox(o, dx, dy, sc) { sc = sc || 1; s.push(); s.translate(o.x + dx, o.y + dy); s.rotate(o.rot * Math.PI / 180); s.scale(sc); s.rect(-o.w / 2, -o.h / 2, o.w, o.h); s.pop(); }
+      function gBoxR(o, deg) { s.push(); s.translate(o.x, o.y); s.rotate((o.rot + deg) * Math.PI / 180); s.rect(-o.w / 2, -o.h / 2, o.w, o.h); s.pop(); }
+      function drawMotionGuides() {
+        s.push(); s.noFill(); s.stroke(124, 92, 255, 160); s.strokeWeight(1.5 / view.zoom);
+        s.drawingContext.setLineDash([6 / view.zoom, 5 / view.zoom]);
+        for (const o of sel) {
+          const m = o.motion; if (!m || m.kind === 'none') continue;
+          const a = m.amp;
+          if (m.kind === 'float') { gBox(o, 0, -a); gBox(o, 0, a); s.line(o.x, o.y - a, o.x, o.y + a); }
+          else if (m.kind === 'orbit') { s.circle(o.x, o.y, a * 2); gBox(o, a, 0); }
+          else if (m.kind === 'pulse') { gBox(o, 0, 0, 1 + a / 100); }
+          else if (m.kind === 'spin') { s.circle(o.x, o.y, Math.hypot(o.w, o.h)); }
+          else if (m.kind === 'sway') { gBoxR(o, a * 0.5); gBoxR(o, -a * 0.5); }
+          else gBox(o, 0, 0);
+        }
+        s.drawingContext.setLineDash([]); s.pop();
+      }
+
+      /* ---------------- Gestes ---------------- */
+      function startDrag(mx, my, middle) {
+        const d = toDoc(mx, my);
+        if (middle || spaceDown || state.tool === 'pan') { drag = { kind: 'pan', sx: mx, sy: my, px: view.panX, py: view.panY }; view.fit = false; setCursor(); return; }
+        const t = state.tool;
+        if (t === 'select') { startSelect(mx, my, d); return; }
+        if (t === 'capture') { drag = { kind: 'capture', x0: d.x, y0: d.y, x1: d.x, y1: d.y }; refresh(); return; }
+        if (t === 'sparkle') { drag = { kind: 'sparkle' }; burstSpawn(d.x, d.y); return; }
+        if (t === 'fill') { pushUndo(); if (!floodFill(d.x, d.y)) undoStack.pop(); refresh(); return; }
+        pushUndo();
+        if (isShape(t)) { drag = { kind: 'shape', x0: d.x, y0: d.y, x1: d.x, y1: d.y }; layer.clear(); refresh(); return; }
+        if (t === 'eraser') { drag = { kind: 'eraser', lx: d.x, ly: d.y }; eraseDot(d.x, d.y); refresh(); return; }
+        drag = { kind: 'brush', lx: d.x, ly: d.y }; layer.clear(); brushDot(d.x, d.y); refresh();
+      }
+      function startSelect(mx, my, d) {
+        if (sel.length === 1) {   // poignées ?
+          const hp = handlePoints(sel[0]);
+          if (Math.hypot(mx - hp.rot.x, my - hp.rot.y) <= 9) { pushUndo(); drag = { kind: 'objRotate', o: sel[0] }; return; }
+          for (const p of hp.corners) if (Math.hypot(mx - p.x, my - p.y) <= 8) { pushUndo(); drag = { kind: 'objResize', o: sel[0] }; return; }
+        }
+        const hit = hitObject(d.x, d.y);
+        if (hit) {
+          if (!sel.includes(hit)) { if (!s.keyIsDown(16)) sel = []; sel.push(hit); syncSel(); }
+          pushUndo();
+          drag = { kind: 'objMove', sx: d.x, sy: d.y, orig: sel.map((o) => ({ o, x: o.x, y: o.y })) };
+        } else {
+          if (!s.keyIsDown(16)) { sel = []; syncSel(); }
+          drag = { kind: 'marquee', x0: d.x, y0: d.y, x1: d.x, y1: d.y, add: s.keyIsDown(16), base: sel.slice() };
+        }
+        refresh();
+      }
+      function moveDrag(mx, my) {
+        if (!drag) return;
+        if (drag.kind === 'pan') { view.panX = drag.px + (mx - drag.sx); view.panY = drag.py + (my - drag.sy); refresh(); return; }
+        const d = toDoc(mx, my);
+        if (drag.kind === 'capture') { drag.x1 = d.x; drag.y1 = d.y; refresh(); return; }
+        if (drag.kind === 'sparkle') { burstSpawn(d.x, d.y); return; }
+        if (drag.kind === 'shape') { drag.x1 = d.x; drag.y1 = d.y; layer.clear(); drawShapeInto(layer, drag); refresh(); return; }
+        if (drag.kind === 'eraser') { eraseSeg(drag.lx, drag.ly, d.x, d.y); drag.lx = d.x; drag.ly = d.y; refresh(); return; }
+        if (drag.kind === 'brush') { brushSeg(drag.lx, drag.ly, d.x, d.y); drag.lx = d.x; drag.ly = d.y; refresh(); return; }
+        if (drag.kind === 'objMove') { const ddx = d.x - drag.sx, ddy = d.y - drag.sy; drag.orig.forEach((it) => { it.o.x = it.x + ddx; it.o.y = it.y + ddy; }); refresh(); return; }
+        if (drag.kind === 'objResize') { const o = drag.o, l = toLocal(o, d.x, d.y); o.w = Math.max(8, Math.abs(l.x) * 2); o.h = Math.max(8, Math.abs(l.y) * 2); if (o.type === 'text') o.size = o.h; refresh(); return; }
+        if (drag.kind === 'objRotate') { const o = drag.o; o.rot = Math.atan2(d.y - o.y, d.x - o.x) * 180 / Math.PI + 90; refresh(); return; }
+        if (drag.kind === 'marquee') { drag.x1 = d.x; drag.y1 = d.y; refresh(); return; }
+      }
+      function endDrag() {
+        const d = drag; drag = null;
+        if (!d) return;
+        if (d.kind === 'shape') { const moved = Math.hypot(d.x1 - d.x0, d.y1 - d.y0) * view.zoom > 3; if (moved) commitLayer(); else undoStack.pop(); layer.clear(); }
+        else if (d.kind === 'brush') { commitLayer(); layer.clear(); }
+        else if (d.kind === 'capture') { captureRegion(d); }
+        else if (d.kind === 'marquee') {
+          const xa = Math.min(d.x0, d.x1), ya = Math.min(d.y0, d.y1), xb = Math.max(d.x0, d.x1), yb = Math.max(d.y0, d.y1);
+          const picked = objects.filter((o) => o.x >= xa && o.x <= xb && o.y >= ya && o.y <= yb);
+          sel = d.add ? Array.from(new Set(d.base.concat(picked))) : picked; syncSel();
+        } else if (d.kind === 'objResize' || d.kind === 'objRotate') {
+          if (d.o.type === 'text') measureText(d.o);
+        }
+        setCursor(); refresh();
+      }
+      function cancelDrag() { if (!drag) return; const k = drag.kind; drag = null; if (k === 'brush' || k === 'shape' || k === 'eraser') { layer.clear(); undo(); } setCursor(); refresh(); }
+      function commitLayer() { const dc = pg.drawingContext; dc.globalAlpha = state.opacity / 100; pg.image(layer, 0, 0); dc.globalAlpha = 1; }
+
+      /* ---------------- Symétrie (peinture) ---------------- */
+      function symTransforms() {
+        const S = state.sym;
+        if (S === 'mirror') return [{ rot: 0, sx: 1, sy: 1 }, { rot: 0, sx: -1, sy: 1 }];
+        if (S === 'quad') return [{ rot: 0, sx: 1, sy: 1 }, { rot: 0, sx: -1, sy: 1 }, { rot: 0, sx: 1, sy: -1 }, { rot: 0, sx: -1, sy: -1 }];
+        if (S === 'mandala') { const a = [], n = state.branches; for (let i = 0; i < n; i++) { const r = i * 2 * Math.PI / n; a.push({ rot: r, sx: 1, sy: 1 }); if (state.mirror) a.push({ rot: r, sx: -1, sy: 1 }); } return a; }
+        return [{ rot: 0, sx: 1, sy: 1 }];
+      }
+      function eachSymmetry(g, fn) { const cx = docW / 2, cy = docH / 2; for (const t of symTransforms()) { g.push(); g.translate(cx, cy); if (t.rot) g.rotate(t.rot); g.scale(t.sx, t.sy); g.translate(-cx, -cy); fn(g); g.pop(); } }
+      function symSeeds(x, y) { const cx = docW / 2, cy = docH / 2; return symTransforms().map((t) => { const dx = (x - cx) * t.sx, dy = (y - cy) * t.sy, c = Math.cos(t.rot), sn = Math.sin(t.rot); return { x: cx + dx * c - dy * sn, y: cy + dx * sn + dy * c }; }); }
+
+      function brushDot(x, y) { layer.noStroke(); layer.fill(state.color); eachSymmetry(layer, (c) => c.circle(x, y, state.size)); }
+      function brushSeg(x0, y0, x1, y1) { layer.noFill(); layer.stroke(state.color); layer.strokeWeight(state.size); layer.strokeCap(s.ROUND); layer.strokeJoin(s.ROUND); eachSymmetry(layer, (c) => c.line(x0, y0, x1, y1)); }
+      function eraseDot(x, y) { eachSymmetry(pg, (c) => { c.fill(0); c.noStroke(); c.erase(); c.circle(x, y, state.size); c.noErase(); }); }
+      function eraseSeg(x0, y0, x1, y1) { eachSymmetry(pg, (c) => { c.stroke(0); c.strokeWeight(state.size); c.strokeCap(s.ROUND); c.erase(); c.line(x0, y0, x1, y1); c.noErase(); }); }
+      function drawShapeInto(g, d) {
+        if (state.tool === 'line') { g.stroke(state.color); g.strokeWeight(state.size); g.strokeCap(s.ROUND); g.noFill(); }
+        else if (state.fill) { g.fill(state.color); g.noStroke(); }
+        else { g.noFill(); g.stroke(state.color); g.strokeWeight(state.size); g.strokeJoin(s.ROUND); }
+        eachSymmetry(g, (c) => shapePrim(c, d, state.tool));
+      }
+      function shapePrim(c, g, tool) {
+        const xa = Math.min(g.x0, g.x1), ya = Math.min(g.y0, g.y1), w = Math.abs(g.x1 - g.x0), h = Math.abs(g.y1 - g.y0), cx = (g.x0 + g.x1) / 2, cy = (g.y0 + g.y1) / 2;
+        if (tool === 'line') { c.line(g.x0, g.y0, g.x1, g.y1); return; }
+        if (tool === 'rect') c.rect(xa, ya, w, h, 8);
+        else if (tool === 'ellipse') c.ellipse(cx, cy, w, h);
+        else if (tool === 'triangle') c.triangle(cx, ya, xa, ya + h, xa + w, ya + h);
+        else if (tool === 'star') { const r = Math.max(4, Math.hypot(w, h) / 2); c.beginShape(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = (i % 2 === 0) ? r : r * 0.45; c.vertex(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } c.endShape(s.CLOSE); }
+      }
+
+      /* ---------------- Remplissage ---------------- */
+      function makeComposite(withObjects) {
+        const g = newLayer(docW, docH); g.background(PAPER); if (bgImage) drawBg(g); g.image(pg, 0, 0);
+        if (withObjects) for (const o of objects) drawObject(g, o, 0, false);
+        return g;
+      }
+      function scanFill(sx, sy, W, H, match, mark) {
+        const st = [sx, sy];
+        while (st.length) { const y = st.pop(), x0 = st.pop(); let x = x0, i = y * W + x; if (!match(i)) continue; while (x > 0 && match(i - 1)) { x--; i--; } let up = false, dn = false; while (x < W && match(i)) { mark(i); if (y > 0) { const m = match(i - W); if (m && !up) { st.push(x, y - 1); up = true; } else if (!m) up = false; } if (y < H - 1) { const m = match(i + W); if (m && !dn) { st.push(x, y + 1); dn = true; } else if (!m) dn = false; } x++; i++; } }
+      }
+      function blend(p, k, r, g, b, a, under) {
+        const da = p[k + 3] / 255;
+        if (!under) { const oa = a + da * (1 - a); if (oa <= 0) return; p[k] = (r * a + p[k] * da * (1 - a)) / oa; p[k + 1] = (g * a + p[k + 1] * da * (1 - a)) / oa; p[k + 2] = (b * a + p[k + 2] * da * (1 - a)) / oa; p[k + 3] = oa * 255; }
+        else { const oa = da + a * (1 - da); if (oa <= 0) return; p[k] = (p[k] * da + r * a * (1 - da)) / oa; p[k + 1] = (p[k + 1] * da + g * a * (1 - da)) / oa; p[k + 2] = (p[k + 2] * da + b * a * (1 - da)) / oa; p[k + 3] = oa * 255; }
+      }
+      function floodFill(x, y) {
+        const W = docW, H = docH, seeds = [];
+        for (const p of symSeeds(x, y)) { const sx = Math.floor(p.x), sy = Math.floor(p.y); if (sx >= 0 && sy >= 0 && sx < W && sy < H) seeds.push(sx, sy); }
+        if (!seeds.length) return false;
+        const comp = makeComposite(false); comp.loadPixels(); const cp = comp.pixels;
+        const mask = new Uint8Array(W * H), t = Math.round(state.tol * 2.55), tR = [0], tG = [0], tB = [0]; let rid = 0;
+        for (let q = 0; q < seeds.length; q += 2) {
+          const sx = seeds[q], sy = seeds[q + 1], si = sy * W + sx;
+          if (mask[si] || rid >= 250) continue;
+          rid++; const k0 = si * 4, r0 = cp[k0], g0 = cp[k0 + 1], b0 = cp[k0 + 2], id = rid; tR[id] = r0; tG[id] = g0; tB[id] = b0;
+          const match = (i) => { if (mask[i]) return false; const k = i * 4; return Math.abs(cp[k] - r0) <= t && Math.abs(cp[k + 1] - g0) <= t && Math.abs(cp[k + 2] - b0) <= t; };
+          scanFill(sx, sy, W, H, match, (i) => { mask[i] = id; });
+        }
+        if (!rid) { comp.remove(); return false; }
+        const fringe = new Uint8Array(W * H), ft = t + 0.4 * (255 - t);
+        const tryFringe = (j, r) => { if (mask[j] || fringe[j]) return; const k = j * 4; if (Math.abs(cp[k] - tR[r]) <= ft && Math.abs(cp[k + 1] - tG[r]) <= ft && Math.abs(cp[k + 2] - tB[r]) <= ft) fringe[j] = 1; };
+        for (let yy = 0; yy < H; yy++) for (let xx = 0; xx < W; xx++) { const i = yy * W + xx, r = mask[i]; if (!r) continue; if (xx > 0) tryFringe(i - 1, r); if (xx < W - 1) tryFringe(i + 1, r); if (yy > 0) tryFringe(i - W, r); if (yy < H - 1) tryFringe(i + W, r); }
+        pg.loadPixels(); const p = pg.pixels; const col = s.color(state.color), fr = s.red(col), fgc = s.green(col), fb = s.blue(col), fa = state.opacity / 100;
+        for (let i = 0, n = W * H; i < n; i++) { if (mask[i]) blend(p, i * 4, fr, fgc, fb, fa, false); else if (fringe[i]) { const a = p[i * 4 + 3]; if (a < 250) blend(p, i * 4, fr, fgc, fb, fa, a > 0); } }
+        pg.updatePixels(); setTimeout(() => comp.remove(), 0); return true;
+      }
+
+      function drawBg(g) { const sc = Math.min(docW / bgImage.width, docH / bgImage.height); g.push(); g.translate(docW / 2, docH / 2); g.rotate(state.bgRot * Math.PI / 180); g.imageMode(s.CENTER); const dc = g.drawingContext, ga = dc.globalAlpha; dc.globalAlpha = ga * state.bgAlpha / 100; g.image(bgImage, 0, 0, bgImage.width * sc, bgImage.height * sc); dc.globalAlpha = ga; g.pop(); }
+
+      /* ---------------- Paillettes ---------------- */
+      function burstSpawn(x, y) { for (let i = 0; i < state.vivDens; i++) spawn(x, y, false); }
+      function spawn(x, y, ambient) {
+        const k = pScale(); let vx, vy, grav;
+        if (state.vivSens === 'down') { vx = s.random(-0.4, 0.4); vy = s.random(0.25, 1.1); grav = 0.004; }
+        else if (state.vivSens === 'burst') { const a = s.random(s.TWO_PI), sp = s.random(0.5, 1.6); vx = Math.cos(a) * sp; vy = Math.sin(a) * sp; grav = 0; }
+        else { vx = s.random(-0.4, 0.4); vy = s.random(-1.1, -0.25); grav = 0.002; }
+        particles.push({ x, y, vx: vx * k, vy: vy * k, grav: grav * k, life: 1, decay: s.random(0.004, 0.011), r: s.random(2, 6) * k, col: ambient ? COLORS[(s.random(COLORS.length) | 0)] : state.color, tw: s.random(s.TWO_PI), shape: state.vivShape });
+        const cap = 60 + state.vivDens * 50; if (particles.length > cap + 40) particles.splice(0, particles.length - (cap + 40));
+      }
+      function stepParticles() {
+        s.noStroke();
+        for (let i = particles.length - 1; i >= 0; i--) { const q = particles[i]; q.x += q.vx; q.y += q.vy; q.vy += q.grav; q.life -= q.decay; q.tw += 0.12; if (q.life <= 0) { particles.splice(i, 1); continue; } const tw = 0.55 + 0.45 * Math.sin(q.tw); const col = s.color(q.col); col.setAlpha(255 * q.life * tw); s.fill(col); const r = q.r * (0.6 + 0.7 * tw); if (q.shape === 'circle') s.circle(q.x, q.y, r * 1.6); else if (q.shape === 'heart') heart(q.x, q.y, r * 1.5); else starP(q.x, q.y, r); }
+      }
+      function starP(x, y, r) { s.push(); s.translate(x, y); s.beginShape(); for (let i = 0; i < 8; i++) { const a = i * s.PI / 4, rr = (i % 2 === 0) ? r : r * 0.4; s.vertex(Math.cos(a) * rr, Math.sin(a) * rr); } s.endShape(s.CLOSE); s.pop(); }
+      function heart(x, y, r) { s.push(); s.translate(x, y); s.scale(r / 14); s.beginShape(); s.vertex(0, -5); s.bezierVertex(-7, -14, -16, -2, 0, 9); s.bezierVertex(16, -2, 7, -14, 0, -5); s.endShape(s.CLOSE); s.pop(); }
+
+      /* ---------------- Objets : création & édition ---------------- */
+      function measureText(o) { s.push(); s.textFont(o.font); s.textSize(o.size); o.w = Math.max(20, s.textWidth(o.text) + o.size * 0.3); o.h = o.size * 1.2; s.pop(); }
+      function addObject(o) { pushUndo(); o.id = nextId++; objects.push(o); sel = [o]; syncSel(); if (setTabExt) setTabExt('objets'); else if (state.tool !== 'select') selectToolExt('select'); refresh(); }
+      api.addShape = () => { const d = Math.min(docW, docH) * 0.3; addObject({ type: state.shapeKind, x: docW / 2, y: docH / 2, w: d, h: d, rot: 0, color: state.color, fill: state.fill, lineW: Math.max(2, state.size), opacity: state.opacity, motion: { kind: 'none', speed: 2, amp: 60 } }); };
+      api.addText = (txt) => { if (!txt) return; const size = Math.max(16, Math.min(docW, docH) * 0.1); const o = { type: 'text', x: docW / 2, y: docH / 2, rot: 0, color: state.color, opacity: state.opacity, text: txt, font: 'Fredoka', size, motion: { kind: 'none', speed: 2, amp: 60 } }; measureText(o); addObject(o); };
+      api.addImageObj = (img) => { const sc = Math.min(docW * 0.5 / img.width, docH * 0.5 / img.height, 1); addObject({ type: 'image', img, x: docW / 2, y: docH / 2, w: img.width * sc, h: img.height * sc, rot: 0, color: '#000', opacity: 100, motion: { kind: 'none', speed: 2, amp: 60 } }); };
+      function captureRegion(d) {
+        const xa = clamp(Math.min(d.x0, d.x1), 0, docW), ya = clamp(Math.min(d.y0, d.y1), 0, docH), xb = clamp(Math.max(d.x0, d.x1), 0, docW), yb = clamp(Math.max(d.y0, d.y1), 0, docH);
+        const w = Math.round(xb - xa), h = Math.round(yb - ya);
+        if (w < 6 || h < 6) { refresh(); return; }
+        // on ne capture que les traits (pg est transparent) → fond transparent, pas de carré blanc
+        const rx = Math.round(xa), ry = Math.round(ya), img = pg.get(rx, ry, w, h);
+        addObject({ type: 'image', x: (xa + xb) / 2, y: (ya + yb) / 2, w, h, rot: 0, color: '#000', opacity: 100, img, motion: { kind: 'none', speed: 2, amp: 60 } });
+        if (state.cutCapture) { pg.push(); pg.noStroke(); pg.erase(); pg.rect(rx, ry, w, h); pg.noErase(); pg.pop(); }   // couper : effacer l'original
+      }
+      function deleteSel() { if (!sel.length) return; pushUndo(); objects = objects.filter((o) => !sel.includes(o)); sel = []; syncSel(); refresh(); }
+      api.deleteSel = deleteSel;
+      api.dupSel = () => { if (!sel.length) return; pushUndo(); const copies = sel.map((o) => { const n = Object.assign({}, o, { motion: Object.assign({}, o.motion) }); n.id = nextId++; n.x += 24; n.y += 24; return n; }); objects.push(...copies); sel = copies; syncSel(); refresh(); };
+      api.order = (dir) => { if (!sel.length) return; pushUndo(); const inSel = objects.filter((o) => sel.includes(o)), rest = objects.filter((o) => !sel.includes(o)); objects = dir > 0 ? rest.concat(inSel) : inSel.concat(rest); refresh(); };
+      api.applyToSel = (fn) => { if (!sel.length) return; pushUndo(); sel.forEach(fn); sel.forEach((o) => { if (o.type === 'text') measureText(o); }); refresh(); };
+      api.selCount = () => sel.length;
+      api.selectSimilar = () => { if (!sel.length) return; const ref = sel[0]; sel = objects.filter((o) => o.type === ref.type && (ref.type === 'image' || o.color === ref.color)); syncSel(); refresh(); };
+
+      /* ---------------- Toile, historique ---------------- */
+      function syncDocInputs() { const w = document.getElementById('docW'), h = document.getElementById('docH'); if (w) w.value = docW; if (h) h.value = docH; }
+      function cloneObjs() { return objects.map((o) => Object.assign({}, o, { motion: Object.assign({}, o.motion) })); }
+      function pushUndo() { const limit = clamp(Math.floor(256e6 / (docW * docH * 4)), 3, 20); undoStack.push({ img: pg.get(), objs: cloneObjs(), sel: sel.slice(), w: docW, h: docH }); while (undoStack.length > limit) undoStack.shift(); }
+      function undo() {
+        if (!undoStack.length) return;
+        const u = undoStack.pop();
+        if (u.w !== docW || u.h !== docH) { pg.remove(); layer.remove(); pg = newLayer(u.w, u.h); layer = newLayer(u.w, u.h); docW = u.w; docH = u.h; particles = []; fitView(); syncDocInputs(); }
+        else pg.clear();
+        pg.image(u.img, 0, 0); objects = u.objs; sel = (u.sel || []).filter((o) => objects.includes(o)); syncSel(); refresh();
+      }
+      function setDocSize(w, h) {
+        w = clamp(Math.round(w) || 0, DOCMIN, DOCMAX); h = clamp(Math.round(h) || 0, DOCMIN, DOCMAX);
+        if (w === docW && h === docH) { syncDocInputs(); return; }
+        pushUndo(); const old = pg, ow = docW, oh = docH, ddx = Math.round((w - ow) / 2), ddy = Math.round((h - oh) / 2);
+        pg = newLayer(w, h); pg.image(old, ddx, ddy); old.remove(); layer.remove(); layer = newLayer(w, h);
+        objects.forEach((o) => { o.x += ddx; o.y += ddy; });
+        docW = w; docH = h; particles = []; fitView(); syncDocInputs(); refresh();
+      }
+
+      /* ---------------- API boutons ---------------- */
+      api.setMode = (m) => { state.mode = m; if (m === 'living') s.loop(); else { particles = []; s.noLoop(); s.redraw(); } };
+      api.hasMotion = () => objects.some((o) => o.motion && o.motion.kind !== 'none');
+      api.undo = undo;
+      api.clear = () => { pushUndo(); pg.clear(); objects = []; sel = []; syncSel(); particles = []; refresh(); };
+      api.savePng = () => { const g = makeComposite(true); s.saveCanvas(g, 'cosmos-dessin', 'png'); setTimeout(() => g.remove(), 2000); };
+      api.saveGif = () => { fitView(); s.saveGif('cosmos-anime', 4); };
+      api.loadBg = (url) => s.loadImage(url, (img) => { bgImage = img; document.body.classList.add('has-bg'); refresh(); URL.revokeObjectURL(url); }, () => URL.revokeObjectURL(url));
+      api.loadObjImg = (url) => s.loadImage(url, (img) => { api.addImageObj(img); URL.revokeObjectURL(url); }, () => URL.revokeObjectURL(url));
+      api.removeBg = () => { bgImage = null; document.body.classList.remove('has-bg'); refresh(); };
+      api.redraw = refresh;
+      api.zoomBy = (f) => zoomAt(f, s.width / 2, s.height / 2);
+      api.zoom100 = () => zoomAt(1 / view.zoom, s.width / 2, s.height / 2);
+      api.fit = () => { fitView(); refresh(); };
+      api.setDocSize = setDocSize;
+      api.screenSize = () => ({ w: holder.clientWidth | 0, h: holder.clientHeight | 0 });
+      api.setCursor = setCursor;
+      api.clearSel = () => { sel = []; syncSel(); refresh(); };
+
+      window.addEventListener('blur', () => { if (drag) endDrag(); spaceDown = false; setCursor(); });
+    };
+
+    new p5(sketch);
+
+    /* ================= Câblage ================= */
+    const $ = (id) => document.getElementById(id);
+    const body = document.body;
+    let selectToolExt, setTabExt;
+    function syncSel() { body.classList.toggle('has-sel', sel.length > 0); if (sel.length === 1) refreshMotionUI(sel[0]); }
+    window.__syncSelRef = null;
+    // expose syncSel to sketch via closure variable
+    (function () { /* syncSel defined above uses sel/body from outer scope */ })();
+
+    function selectTool(name) {
+      state.tool = name;
+      document.querySelectorAll('.at-outil[data-tool]').forEach((x) => x.classList.toggle('on', x.dataset.tool === name));
+      body.classList.toggle('tool-fill', name === 'fill');
+      body.classList.toggle('tool-capture', name === 'capture');
+      if (name !== 'select' && api.clearSel) api.clearSel();
+      if (api.setCursor) api.setCursor();
+    }
+    selectToolExt = selectTool;
+
+    // Onglets de la palette (Peindre / Objets / Scène)
+    const PAINT_TOOLS = ['brush', 'line', 'rect', 'ellipse', 'triangle', 'star', 'fill', 'eraser'];
+    function setTab(t) {
+      document.body.dataset.tab = t;
+      document.querySelectorAll('#palTabs button').forEach((x) => x.classList.toggle('on', x.dataset.tab === t));
+      if (t === 'peindre' && !PAINT_TOOLS.includes(state.tool)) selectTool('brush');
+      else if (t === 'objets' && state.tool !== 'select' && state.tool !== 'capture') selectTool('select');
+    }
+    setTabExt = setTab;
+    document.querySelectorAll('#palTabs button').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
+    document.body.dataset.tab = 'peindre';
+
+    function reprendrePinceau() { if (state.tool === 'eraser' || state.tool === 'pan') selectTool('brush'); }
+    function segWire(id, onPick) { document.querySelectorAll('#' + id + ' button').forEach((b) => b.addEventListener('click', () => { document.querySelectorAll('#' + id + ' button').forEach((x) => x.classList.toggle('on', x === b)); onPick(b); })); }
+    function slider(id, out, fmt, onVal) { $(id).addEventListener('input', (e) => { const v = +e.target.value; $(out).textContent = fmt(v); onVal(v); }); }
+    function refreshMotionUI(o) { if (!o || !o.motion) return; $('motionKind').value = o.motion.kind; $('motionSpeed').value = o.motion.speed; $('motionSpeedVal').textContent = o.motion.speed; $('motionAmp').value = o.motion.amp; $('motionAmpVal').textContent = o.motion.amp; }
+
+    document.querySelectorAll('.at-outil[data-tool]').forEach((b) => b.addEventListener('click', () => selectTool(b.dataset.tool)));
+    slider('tol', 'tolVal', (v) => v, (v) => { state.tol = v; });
+    $('btnUndo').addEventListener('click', () => api.undo());
+    $('btnClear').addEventListener('click', () => api.clear());
+
+    // Couleurs (double usage : pinceau + objets sélectionnés)
+    function pickColor(hex) { state.color = hex; document.querySelectorAll('.at-swatch').forEach((x) => x.classList.toggle('on', x.dataset.color === hex)); reprendrePinceau(); if (api.selCount && api.selCount()) api.applyToSel((o) => { if (o.type !== 'image') o.color = hex; }); }
+    document.querySelectorAll('.at-swatch:not(.at-custom)').forEach((b) => b.addEventListener('click', () => pickColor(b.dataset.color)));
+    const custom = $('customColor'), customBtn = $('customBtn');
+    customBtn.addEventListener('click', () => custom.click());
+    custom.addEventListener('input', () => { state.color = custom.value; customBtn.style.background = custom.value; document.querySelectorAll('.at-swatch').forEach((x) => x.classList.remove('on')); customBtn.classList.add('on'); reprendrePinceau(); if (api.selCount && api.selCount()) api.applyToSel((o) => { if (o.type !== 'image') o.color = custom.value; }); });
+
+    segWire('fillSeg', (b) => { state.fill = b.dataset.fill === '1'; if (api.selCount && api.selCount()) api.applyToSel((o) => { o.fill = state.fill; }); });
+    segWire('symSeg', (b) => { state.sym = b.dataset.sym; body.classList.toggle('sym-mandala', state.sym === 'mandala'); });
+    slider('branches', 'branchesVal', (v) => v, (v) => { state.branches = v; });
+    $('mirrorChk').addEventListener('change', (e) => { state.mirror = e.target.checked; });
+
+    slider('size', 'sizeVal', (v) => v, (v) => { state.size = v; if (api.selCount && api.selCount()) api.applyToSel((o) => { if (o.lineW !== undefined) o.lineW = Math.max(1, v); }); });
+    slider('opacity', 'opacityVal', (v) => v + '%', (v) => { state.opacity = v; if (api.selCount && api.selCount()) api.applyToSel((o) => { o.opacity = v; }); });
+
+    // Objets : création
+    $('shapeKind').addEventListener('change', (e) => { state.shapeKind = e.target.value; });
+    $('btnAddShape').addEventListener('click', () => api.addShape());
+    $('btnAddText').addEventListener('click', () => { const t = $('objText').value.trim(); if (t) { api.addText(t); $('objText').value = ''; } });
+    $('objText').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const t = $('objText').value.trim(); if (t) { api.addText(t); $('objText').value = ''; } } });
+    $('btnObjImg').addEventListener('click', () => $('objImgFile').click());
+    $('objImgFile').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (!f) return; api.loadObjImg(URL.createObjectURL(f)); e.target.value = ''; });
+
+    // Objet sélectionné
+    $('btnDup').addEventListener('click', () => api.dupSel());
+    $('btnDel').addEventListener('click', () => api.deleteSel());
+    $('btnFront').addEventListener('click', () => api.order(1));
+    $('btnBack').addEventListener('click', () => api.order(-1));
+    $('btnSimilar').addEventListener('click', () => api.selectSimilar());
+    $('cutOrig').addEventListener('change', (e) => { state.cutCapture = e.target.checked; });
+
+    // Mouvement
+    $('motionKind').addEventListener('change', (e) => { state.motionKind = e.target.value; if (api.selCount()) api.applyToSel((o) => { o.motion.kind = e.target.value; }); });
+    slider('motionSpeed', 'motionSpeedVal', (v) => v, (v) => { state.motionSpeed = v; if (api.selCount()) api.applyToSel((o) => { o.motion.speed = v; }); });
+    slider('motionAmp', 'motionAmpVal', (v) => v, (v) => { state.motionAmp = v; if (api.selCount()) api.applyToSel((o) => { o.motion.amp = v; }); });
+
+    // Toile
+    $('docPreset').addEventListener('change', (e) => { const v = e.target.value; if (v === 'screen') { const sz = api.screenSize(); api.setDocSize(sz.w, sz.h); } else if (v) { const [w, h] = v.split('x').map(Number); api.setDocSize(w, h); } e.target.value = ''; });
+    const applyDoc = () => api.setDocSize(+$('docW').value, +$('docH').value);
+    $('btnDocApply').addEventListener('click', applyDoc);
+    ['docW', 'docH'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') applyDoc(); }));
+
+    // Zoom
+    $('zIn').addEventListener('click', () => api.zoomBy(1.25));
+    $('zOut').addEventListener('click', () => api.zoomBy(0.8));
+    $('zPct').addEventListener('click', () => api.zoom100());
+    $('zFit').addEventListener('click', () => api.fit());
+
+    // Image de fond
+    $('btnImg').addEventListener('click', () => $('imgFile').click());
+    $('imgFile').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (!f) return; api.loadBg(URL.createObjectURL(f)); e.target.value = ''; });
+    $('btnImgDel').addEventListener('click', () => api.removeBg());
+    slider('bgRot', 'bgRotVal', (v) => v + '°', (v) => { state.bgRot = v; api.redraw(); });
+    slider('bgAlpha', 'bgAlphaVal', (v) => v + '%', (v) => { state.bgAlpha = v; api.redraw(); });
+
+    // Vivant
+    segWire('vivShapeSeg', (b) => { state.vivShape = b.dataset.vs; });
+    segWire('vivSensSeg', (b) => { state.vivSens = b.dataset.vd; });
+    slider('vivDens', 'vivDensVal', (v) => v, (v) => { state.vivDens = v; });
+
+    // Mode
+    document.querySelectorAll('#modeSeg button').forEach((b) => b.addEventListener('click', () => { const m = b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach((x) => x.classList.toggle('on', x === b)); body.classList.toggle('is-living', m === 'living'); if (m !== 'living' && state.tool === 'sparkle') selectTool('brush'); api.setMode(m); }));
+
+    // Export
+    $('btnPng').addEventListener('click', () => api.savePng());
+    $('btnGif').addEventListener('click', () => api.saveGif());
+
+    new MutationObserver(() => { if (api.redraw) api.redraw(); }).observe(body, { attributes: true, attributeFilter: ['class'] });
+
+    // --- liaison sel ↔ UI : la fonction syncSel du sketch appelle ces hooks ---
+    window.__motionUI = refreshMotionUI;
+  })();
+  </script>
+
+  <script src="../../../commun/js/theme.js"></script>
+  <script src="../../../commun/js/projects.js"></script>
+  <script src="../../../commun/js/nav.js"></script>
+</body>
+</html>

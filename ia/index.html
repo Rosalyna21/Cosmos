@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <script>/*cosmos-antiflash*/ try{var t=localStorage.getItem("cosmos-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("pre-dark");}catch(e){}</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ta boîte à outils — Cosmos</title>
+  <link rel="icon" type="image/svg+xml" href="../commun/img/favicon.svg">
+  <link rel="stylesheet" href="../commun/css/style.css">
+</head>
+<body class="p-ia" data-nav="Outils IA">
+<script>if(document.documentElement.classList.contains("pre-dark"))document.body.classList.add("dark");</script>
+
+  <nav class="nav">
+    <a class="brand" href="../index.html">
+      <span class="brand-logo">
+        <img class="logo-day" src="../commun/img/logo-day.svg" alt="">
+        <img class="logo-night" src="../commun/img/logo-night.svg" alt="">
+      </span>
+      <span class="brand-name">Cosmos</span>
+    </a>
+    <div class="nav-pills"></div>
+  </nav>
+
+  <main class="page">
+    <section class="hero">
+      <h1>Ta boîte à outils</h1>
+      <p class="lead">Des outils gratuits qui travaillent chez toi, pas dans le cloud.</p>
+    </section>
+
+    <div class="bandeau-local">
+      <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+      Rien ne quitte ton ordinateur — tout s'exécute à 100 % dans le navigateur.
+    </div>
+
+    <div class="slicer-wrap">
+      <div class="slicer" data-slicer="[data-group]">
+        <span class="ind"></span>
+        <button class="on" data-target="all">Tout</button>
+        <button data-target="ia">IA</button>
+        <button data-target="data">Data &amp; dev</button>
+      </div>
+    </div>
+
+    <section data-group="ia">
+      <div class="section-head" style="--g1:#FF7A45; --g2:#EC4899;">
+        <span class="material-symbols-rounded" aria-hidden="true">smart_toy</span>
+        <div><h2>IA</h2><div class="sub">Modèles téléchargés une seule fois, exécutés localement</div></div>
+      </div>
+      <div class="grid">
+        <article class="card" style="--g1:#34D399; --g2:#22B4C4;">
+          <div class="thumb"><span class="material-symbols-rounded" aria-hidden="true">record_voice_over</span></div>
+          <h3>Synthèse vocale</h3>
+          <p>Faire lire un texte à voix haute par la voix native de ton navigateur.</p>
+          <span class="badge online"><span class="state-ico material-symbols-rounded" data-day="local_florist" data-night="auto_awesome">local_florist</span>En ligne</span>
+          <a class="cta" href="synthese-vocale/index.html">Ouvrir l'outil</a>
+        </article>
+        <article class="card" style="--g1:#FF7A45; --g2:#EC4899;">
+          <div class="thumb"><span class="material-symbols-rounded" aria-hidden="true">graphic_eq</span></div>
+          <h3>Transcription</h3>
+          <p>Transforme un fichier audio en texte (speech-to-text) avec Whisper, directement dans ton navigateur.</p>
+          <span class="badge construction"><span class="state-ico material-symbols-rounded" data-day="potted_plant" data-night="blur_on">potted_plant</span>En construction</span>
+          <span class="cta ghost">Bientôt disponible</span>
+        </article>
+        <article class="card" style="--g1:#A78BE8; --g2:#8CC7F0;">
+          <div class="thumb"><span class="material-symbols-rounded" aria-hidden="true">document_scanner</span></div>
+          <h3>OCR</h3>
+          <p>Extraire le texte d'une image ou d'un document scanné, sans rien envoyer nulle part.</p>
+          <span class="badge construction"><span class="state-ico material-symbols-rounded" data-day="potted_plant" data-night="blur_on">potted_plant</span>En construction</span>
+          <span class="cta ghost">Bientôt disponible</span>
+        </article>
+        <article class="card" style="--g1:#F472B6; --g2:#A855F7;">
+          <div class="thumb"><span class="material-symbols-rounded" aria-hidden="true">content_cut</span></div>
+          <h3>Détourage</h3>
+          <p>Supprimer l'arrière-plan d'une image en un clic, avant/après et téléchargement PNG.</p>
+          <span class="badge construction"><span class="state-ico material-symbols-rounded" data-day="potted_plant" data-night="blur_on">potted_plant</span>En construction</span>
+          <span class="cta ghost">Bientôt disponible</span>
+        </article>
+      </div>
+    </section>
+
+    <section data-group="data">
+      <div class="section-head" style="--g1:#A78BE8; --g2:#8CC7F0;">
+        <span class="material-symbols-rounded" aria-hidden="true">database</span>
+        <div><h2>Data &amp; dev</h2><div class="sub">Les outils du quotidien data</div></div>
+      </div>
+      <div class="grid">
+        <article class="card" style="--g1:#A78BE8; --g2:#EC4899;">
+          <div class="thumb"><span class="material-symbols-rounded" aria-hidden="true">stacks</span></div>
+          <h3>Agrégateur CSV</h3>
+          <p>Empiler plusieurs CSV en un seul, même si séparateurs, encodage ou ordre des colonnes diffèrent.</p>
+          <span class="badge online"><span class="state-ico material-symbols-rounded" data-day="local_florist" data-night="auto_awesome">local_florist</span>En ligne</span>
+          <a class="cta" href="agregateur-csv/index.html">Ouvrir l'outil</a>
+        </article>
+        <article class="card" style="--g1:#8CC7F0; --g2:#A78BE8;">
+          <div class="thumb"><span class="material-symbols-rounded" aria-hidden="true">schema</span></div>
+          <h3>DrawDB</h3>
+          <p>Dessiner des schémas de bases de données et générer le SQL — éditeur open source.</p>
+          <span class="badge construction"><span class="state-ico material-symbols-rounded" data-day="potted_plant" data-night="blur_on">potted_plant</span>En construction</span>
+          <span class="cta ghost">Bientôt disponible</span>
+        </article>
+        <article class="card" style="--g1:#34D399; --g2:#22B4C4;">
+          <div class="thumb"><span class="material-symbols-rounded" aria-hidden="true">terminal</span></div>
+          <h3>Requêteur SQL</h3>
+          <p>Dépose un CSV et interroge-le en SQL, dans le navigateur (DuckDB).</p>
+          <span class="badge construction"><span class="state-ico material-symbols-rounded" data-day="potted_plant" data-night="blur_on">potted_plant</span>En construction</span>
+          <span class="cta ghost">Bientôt disponible</span>
+        </article>
+        <article class="card" style="--g1:#FFC93C; --g2:#FF7A45;">
+          <div class="thumb"><span class="material-symbols-rounded" aria-hidden="true">swap_horiz</span></div>
+          <h3>Convertisseur CSV ↔ JSON</h3>
+          <p>Convertir et prévisualiser des données tabulaires, avec petites stats par colonne.</p>
+          <span class="badge construction"><span class="state-ico material-symbols-rounded" data-day="potted_plant" data-night="blur_on">potted_plant</span>En construction</span>
+          <span class="cta ghost">Bientôt disponible</span>
+        </article>
+        <article class="card" style="--g1:#F472B6; --g2:#A855F7;">
+          <div class="thumb"><span class="material-symbols-rounded" aria-hidden="true">data_object</span></div>
+          <h3>Lecteur JSON</h3>
+          <p>Coller ou ouvrir un JSON : validation, arbre dépliable, recherche, formater et minifier — sans rien envoyer en ligne.</p>
+          <span class="badge construction"><span class="state-ico material-symbols-rounded" data-day="potted_plant" data-night="blur_on">potted_plant</span>En construction</span>
+          <span class="cta ghost">Bientôt disponible</span>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied">Cosmos — fait avec ❤️ par Rosalyna · <a class="pied-lien" href="../donnees/index.html">Mes données</a></footer>
+  <button class="theme-toggle" id="themeToggle" type="button">
+    <span class="material-symbols-rounded" id="themeIcon" aria-hidden="true">dark_mode</span>
+    <span id="themeLabel">Mode nuit</span>
+  </button>
+  <script src="../commun/js/theme.js"></script>
+  <script src="../commun/js/projects.js"></script>
+  <script src="../commun/js/nav.js"></script>
+</body>
+</html>

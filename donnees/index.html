@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <script>/*cosmos-antiflash*/ try{var t=localStorage.getItem("cosmos-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("pre-dark");}catch(e){}</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes données — Cosmos</title>
+  <link rel="icon" type="image/svg+xml" href="../commun/img/favicon.svg">
+  <link rel="stylesheet" href="../commun/css/style.css">
+</head>
+<body class="p-budget" data-nav="">
+<script>if(document.documentElement.classList.contains("pre-dark"))document.body.classList.add("dark");</script>
+
+  <nav class="nav">
+    <a class="brand" href="../index.html">
+      <span class="brand-logo">
+        <img class="logo-day" src="../commun/img/logo-day.svg" alt="">
+        <img class="logo-night" src="../commun/img/logo-night.svg" alt="">
+      </span>
+      <span class="brand-name">Cosmos</span>
+    </a>
+    <div class="nav-pills"></div>
+  </nav>
+
+  <main class="page">
+    <section class="hero">
+      <h1>Tes données<br>t'appartiennent</h1>
+      <p class="lead">Cosmos fonctionne entièrement dans ton navigateur. Ici, tu peux sauvegarder, restaurer ou effacer tes données quand tu veux.</p>
+    </section>
+
+    <div class="bandeau-local">
+      <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+      Rien ne quitte ton ordinateur — tes chiffres restent dans ce navigateur, sur cet appareil.
+    </div>
+
+    <div class="section-head" style="--g1:#34D399; --g2:#22B4C4;">
+      <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
+      <div><h2>Comment ça marche</h2><div class="sub">Local d'abord, sans compte ni serveur</div></div>
+    </div>
+    <p class="dn-texte">Tout ce que tu saisis dans Cosmos (ton épargne de sécurité, tes répartitions, tes projets, ta règle de budget…) est enregistré <strong>localement</strong>, dans la mémoire de ton navigateur. Personne d'autre n'y a accès et rien n'est envoyé sur Internet. Le revers : si tu vides le cache, changes d'appareil ou de navigateur, ces données ne suivent pas. D'où l'intérêt d'une sauvegarde de temps en temps.</p>
+
+    <div class="section-head" style="--g1:#FBBF24; --g2:#FF7A45;">
+      <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+      <div><h2>Ce qui est enregistré</h2><div class="sub">L'inventaire de ce que Cosmos garde dans ce navigateur</div></div>
+    </div>
+    <div class="donnees" data-inventaire>
+      <p class="dn-statut">Chargement…</p>
+    </div>
+
+    <div class="section-head" style="--g1:#A78BE8; --g2:#8CC7F0;">
+      <span class="material-symbols-rounded" aria-hidden="true">save</span>
+      <div><h2>Sauvegarder &amp; restaurer</h2><div class="sub">Exporte un fichier, garde-le en lieu sûr, réimporte-le quand tu veux</div></div>
+    </div>
+    <div class="donnees" data-donnees>
+      <div class="dn-actions">
+        <button type="button" class="bouton" data-export-json><span class="material-symbols-rounded" aria-hidden="true">download</span> Sauvegarder (JSON)</button>
+        <button type="button" class="bouton ghost" data-export-csv><span class="material-symbols-rounded" aria-hidden="true">table_view</span> Exporter en CSV</button>
+        <label class="bouton ghost import"><span class="material-symbols-rounded" aria-hidden="true">upload</span> Importer une sauvegarde<input type="file" accept=".json,application/json" data-import hidden></label>
+        <button type="button" class="bouton danger" data-effacer><span class="material-symbols-rounded" aria-hidden="true">delete</span> Tout effacer</button>
+      </div>
+      <p class="dn-statut" data-statut></p>
+    </div>
+    <p class="dn-note">Le fichier <strong>JSON</strong> est ta sauvegarde complète : garde-le en lieu sûr et réimporte-le ici pour tout restaurer (sur un autre appareil, par exemple). Le fichier <strong>CSV</strong> est une version lisible dans Excel ou un tableur, pratique pour simplement consulter tes chiffres. « Tout effacer » remet Cosmos à zéro sur ce navigateur — pense à sauvegarder avant.</p>
+  </main>
+
+  <footer class="pied">Cosmos — fait avec ❤️ par Rosalyna · <a class="pied-lien" href="../a-propos/index.html">Ce que ce site ne fait pas</a> · <a class="pied-lien" href="index.html">Mes données</a></footer>
+  <button class="theme-toggle" id="themeToggle" type="button">
+    <span class="material-symbols-rounded" id="themeIcon" aria-hidden="true">dark_mode</span>
+    <span id="themeLabel">Mode nuit</span>
+  </button>
+  <script src="../commun/js/donnees.js"></script>
+  <script src="../commun/js/theme.js"></script>
+  <script src="../commun/js/projects.js"></script>
+  <script src="../commun/js/nav.js"></script>
+</body>
+</html>

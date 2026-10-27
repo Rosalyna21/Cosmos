@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <script>/*cosmos-antiflash*/ try{var t=localStorage.getItem("cosmos-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("pre-dark");}catch(e){}</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmos — Tous mes projets, au même endroit</title>
+  <meta name="description" content="Cosmos — ma petite plateforme perso, 100 % dans ton navigateur : des calculateurs d'argent, un atelier pour dessiner et des outils data. Rien à installer, rien à créer comme compte.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Cosmos">
+  <meta property="og:description" content="Des calculateurs d'argent, un atelier pour dessiner, des outils data — 100 % dans ton navigateur. Rien à installer.">
+  <meta property="og:url" content="https://rosalyna21.github.io/">
+  <meta property="og:image" content="https://rosalyna21.github.io/commun/img/logo-day.svg">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/svg+xml" href="commun/img/favicon.svg">
+  <link rel="stylesheet" href="commun/css/style.css">
+</head>
+<body class="p-home anim-home" data-nav="Accueil">
+<script>if(document.documentElement.classList.contains("pre-dark"))document.body.classList.add("dark");</script>
+
+  <nav class="nav nav-sticky" id="nv">
+    <a class="brand" href="index.html">
+      <span class="brand-logo">
+        <img class="logo-day" src="commun/img/logo-day.svg" alt="">
+        <img class="logo-night" src="commun/img/logo-night.svg" alt="">
+      </span>
+      <span class="brand-name">Cosmos</span>
+    </a>
+    <div class="nav-pills" id="navPills"><!-- généré par commun/js/nav.js --></div>
+    <span style="width:44px; flex:none;" aria-hidden="true"></span>
+  </nav>
+
+  <section class="hero-v2">
+    <h1>Bienvenue dans mon petit coin de cosmos</h1>
+    <p>Des calculateurs d'argent, un atelier pour dessiner, des outils data — tout dans ton navigateur, rien à installer. Et le reste qui pousse petit à petit.</p>
+  </section>
+
+  <section class="raccourcis-wrap">
+    <div class="raccourcis-tete">
+      <span class="lbl">MES RACCOURCIS</span>
+      <button class="perso" type="button" id="persoBtn">
+        <span class="material-symbols-rounded" aria-hidden="true">edit</span>Personnaliser
+      </button>
+    </div>
+    <div class="raccourcis" id="raccourcis"></div>
+  </section>
+
+  <div class="ruban" aria-hidden="true">
+    <div class="rail">
+      <span>✦ Chaque projet est une étoile</span>
+      <span>✦ L'endroit où les choses grandissent</span>
+      <span>✦ Rien ne quitte ton navigateur</span>
+      <span>✦ Petit à petit, la constellation se dessine</span>
+      <span>✦ Chaque projet est une étoile</span>
+      <span>✦ L'endroit où les choses grandissent</span>
+      <span>✦ Rien ne quitte ton navigateur</span>
+      <span>✦ Petit à petit, la constellation se dessine</span>
+    </div>
+  </div>
+
+  <section class="manifeste-wrap">
+    <div class="manifeste">
+      <span class="lbl">CE EN QUOI JE CROIS</span>
+      <div class="cols">
+        <div>
+          <span class="material-symbols-rounded" style="color:#12A085;" aria-hidden="true">lock</span>
+          <b>Tes données t'appartiennent</b>
+          <p>Pas de compte, pas de serveur, pas de traçage. Tout vit dans ton navigateur — et tu peux l'emporter quand tu veux.</p>
+        </div>
+        <div>
+          <span class="material-symbols-rounded" style="color:#C0246B;" aria-hidden="true">favorite</span>
+          <b>Aucune leçon à donner</b>
+          <p>Des repères, jamais des règles. Chacun a ses raisons : l'important est de choisir en connaissance de cause.</p>
+        </div>
+        <div>
+          <span class="material-symbols-rounded dayonly" style="color:#8F5E00;" aria-hidden="true">potted_plant</span>
+          <span class="material-symbols-rounded nightonly" style="color:#F5C46A;" aria-hidden="true">blur_on</span>
+          <b>Ça grandit</b>
+          <p>Chaque mois, quelque chose de neuf pousse ici. Ce qui existe s'améliore, ce qui manque finit par arriver.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="chantier">
+    <span class="material-symbols-rounded dayonly" aria-hidden="true">potted_plant</span>
+    <span class="material-symbols-rounded nightonly" aria-hidden="true">blur_on</span>
+    <span>En ce moment je construis : <span id="chantierTxt">la suite</span></span>
+  </p>
+
+  <footer class="pied-v2">
+    <a class="bouton-donnees" href="donnees/index.html">
+      <span class="material-symbols-rounded ico-db" aria-hidden="true">database</span>Mes données
+      <span class="material-symbols-rounded fleche" aria-hidden="true">arrow_forward</span>
+    </a>
+    <span class="signature">Cosmos — fait avec ❤️ par Rosalyna · <a class="pied-lien" href="mentions-legales/index.html">Mentions légales</a></span>
+  </footer>
+
+  <button class="theme-toggle flottant" id="themeToggle" type="button" aria-label="Changer de thème" title="Changer de thème">
+    <span class="material-symbols-rounded" id="themeIcon" aria-hidden="true">dark_mode</span>
+    <span class="lbl" id="themeLabel">Mode nuit</span>
+  </button>
+
+  <script src="commun/js/projects.js"></script>
+  <script src="commun/js/theme.js"></script>
+  <script src="commun/js/nav.js"></script>
+  <script src="commun/js/raccourcis.js"></script>
+  <script>
+  (function () {
+    /* La barre de navigation (onglets + panneaux) est construite par nav.js,
+       partagée avec toutes les pages. Ici, seul le contenu propre à l'accueil. */
+
+    /* ---- Ligne de chantier ---- */
+    const enChantier = CHEMIN.flatMap(s =>
+      s.gares.filter(g => g.etat === "encours").map(g => g.long || g.label));
+    document.getElementById("chantierTxt").textContent =
+      enChantier.length ? enChantier.join(" · ") : "la suite";
+
+    /* ---- Mes raccourcis : voir commun/js/raccourcis.js ---- */
+  })();
+  </script>
+</body>
+</html>

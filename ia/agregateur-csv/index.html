@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <script>/*cosmos-antiflash*/ try{var t=localStorage.getItem("cosmos-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("pre-dark");}catch(e){}</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agrégateur CSV — Cosmos</title>
+  <link rel="icon" type="image/svg+xml" href="../../commun/img/favicon.svg">
+  <link rel="stylesheet" href="../../commun/css/style.css">
+  <style>
+    /* ---------- Styles propres à l'agrégateur ---------- */
+    .agr { max-width: 980px; margin: 0 auto; display: grid; gap: 22px; }
+    .agr h2 { font-size: 19px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    .agr h2 .num {
+      display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+      font-size: 14px; color: #fff; background: linear-gradient(135deg, var(--g-primary1), var(--g-primary2));
+    }
+    .agr .aide { color: var(--ink2); font-size: 14px; margin-bottom: 16px; }
+
+    .depot {
+      display: block;
+      border: 2px dashed rgba(122,106,140,.4); border-radius: 20px; padding: 34px 20px;
+      text-align: center; color: var(--ink2); cursor: pointer; transition: background .15s, border-color .15s;
+    }
+    .depot:hover, .depot.survol { background: rgba(167,139,232,.10); border-color: #7C5CFF; }
+    .depot .material-symbols-rounded { font-size: 42px; display: block; margin-bottom: 6px; color: #7C5CFF; }
+    body.dark .depot { border-color: rgba(207,198,238,.3); }
+
+    .tableau-wrap { overflow-x: auto; border-radius: 14px; border: 1px solid var(--line); }
+    table.t { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+    table.t th, table.t td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+    table.t th { font-family: 'Space Mono', monospace; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--label); background: var(--soft); position: sticky; top: 0; }
+    table.t tr:last-child td { border-bottom: 0; }
+    table.t td.c { text-align: center; }
+    .ok { color: var(--acc-green); font-weight: 700; }
+    .manque { color: var(--acc-red); font-weight: 700; }
+    .mono { font-family: 'Space Mono', monospace; font-size: 12.5px; }
+    .apercu { max-height: 420px; overflow: auto; }
+
+    .mini { background: none; border: 0; cursor: pointer; color: var(--ink2); padding: 4px; border-radius: 8px; line-height: 0; }
+    .mini:hover { background: rgba(122,106,140,.12); color: var(--ink); }
+    .mini:disabled { opacity: .3; cursor: default; background: none; }
+    .mini .material-symbols-rounded { font-size: 20px; }
+
+    .options { display: grid; gap: 12px; }
+    .options label { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; cursor: pointer; }
+    .options label small { display: block; color: var(--label); font-size: 12.5px; }
+    .options input[type=checkbox], .options input[type=radio] { margin-top: 4px; accent-color: #7C5CFF; }
+    .ligne-export { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 18px; }
+
+    .alerte { border-radius: 14px; padding: 12px 16px; font-size: 14px; margin-top: 14px; display: flex; gap: 10px; align-items: flex-start; }
+    .alerte .material-symbols-rounded { font-size: 20px; }
+    .alerte.info { background: rgba(140,199,240,.18); color: var(--ink); }
+    .alerte.attention { background: #FFE5C2; color: #8F5E00; }
+    body.dark .alerte.attention { background: rgba(255,229,194,.14); color: #F5C46A; }
+
+    .resume { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+    .resume .kpi { padding: 12px 18px; }
+    .resume .kpi .val { font-size: 22px; }
+    .cache { display: none !important; }
+  </style>
+</head>
+<body class="p-ia" data-nav="Outils IA">
+<script>if(document.documentElement.classList.contains("pre-dark"))document.body.classList.add("dark");</script>
+
+  <nav class="nav">
+    <a class="brand" href="../../index.html">
+      <span class="brand-logo">
+        <img class="logo-day" src="../../commun/img/logo-day.svg" alt="">
+        <img class="logo-night" src="../../commun/img/logo-night.svg" alt="">
+      </span>
+      <span class="brand-name">Cosmos</span>
+    </a>
+    <div class="nav-pills"></div>
+  </nav>
+
+  <main class="page">
+    <section class="hero">
+      <h1>Agrégateur CSV</h1>
+      <p class="lead">Empile plusieurs fichiers CSV en un seul — même quand les séparateurs, l'encodage ou l'ordre des colonnes changent d'un fichier à l'autre.</p>
+    </section>
+
+    <div class="bandeau-local">
+      <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+      Tes fichiers ne quittent pas ton ordinateur — tout se passe dans le navigateur, même hors connexion.
+    </div>
+
+    <div class="agr">
+
+      <!-- ① Dépôt des fichiers -->
+      <section class="panneau">
+        <h2><span class="num">1</span> Dépose tes fichiers</h2>
+        <p class="aide">Glisse-dépose tes CSV <strong>ou des dossiers entiers</strong> ici. Tu peux en ajouter en plusieurs fois (ex. un dossier par mois).</p>
+        <label class="depot" id="depot" for="fichiers">
+          <span class="material-symbols-rounded" aria-hidden="true">upload_file</span>
+          <strong>Dépose tes fichiers ou dossiers</strong><br>
+          <span style="font-size:13.5px">ou clique pour choisir des fichiers</span>
+        </label>
+        <input type="file" id="fichiers" accept=".csv,.txt,.tsv,text/csv,text/plain" multiple class="cache">
+        <input type="file" id="dossier" webkitdirectory multiple class="cache">
+        <div style="margin-top:12px; text-align:center">
+          <label class="bouton ghost" for="dossier" style="margin:0"><span class="material-symbols-rounded">folder_open</span> Choisir un ou plusieurs dossiers</label>
+          <p class="dn-note" style="margin:8px auto 0">Plusieurs mois d'un coup : glisse-les ensemble dans la zone, ou choisis le dossier qui les contient puis coche ceux à garder.</p>
+        </div>
+        <p class="dn-statut" id="statutLecture"></p>
+
+        <!-- Choix des sous-dossiers quand on a pris un dossier « parent » -->
+        <div id="choixDossiers" class="cache" style="margin-top:16px; border:1.5px solid var(--line); border-radius:18px; padding:18px">
+          <strong>Quels dossiers veux-tu fusionner ?</strong>
+          <p class="aide" style="margin:4px 0 12px" id="choixTitre"></p>
+          <div style="display:flex; gap:8px; margin-bottom:10px">
+            <button class="bouton ghost" type="button" id="toutCocher" style="padding:6px 14px; font-size:13.5px">Tout cocher</button>
+            <button class="bouton ghost" type="button" id="toutDecocher" style="padding:6px 14px; font-size:13.5px">Tout décocher</button>
+          </div>
+          <div class="options apercu" id="listeDossiers" style="max-height:260px; grid-template-columns:repeat(auto-fill,minmax(200px,1fr))"></div>
+          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap">
+            <button class="bouton" type="button" id="validerDossiers"><span class="material-symbols-rounded">add</span> Ajouter la sélection</button>
+            <button class="bouton ghost" type="button" id="annulerDossiers">Annuler</button>
+          </div>
+        </div>
+
+        <div id="blocFichiers" class="cache" style="margin-top:18px">
+          <div class="tableau-wrap apercu" style="max-height:340px">
+            <table class="t">
+              <thead><tr><th>Ordre</th><th>Fichier</th><th>Lignes</th><th>Colonnes</th><th>Séparateur</th><th>Encodage</th><th></th></tr></thead>
+              <tbody id="listeFichiers"></tbody>
+            </table>
+          </div>
+          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap">
+            <button class="bouton ghost" id="trierNom" type="button"><span class="material-symbols-rounded">sort_by_alpha</span> Trier par nom</button>
+            <button class="bouton ghost" id="toutRetirer" type="button"><span class="material-symbols-rounded">delete_sweep</span> Tout retirer</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ② Colonnes -->
+      <section class="panneau cache" id="blocColonnes">
+        <h2><span class="num">2</span> Vérifie les colonnes</h2>
+        <p class="aide">Les colonnes sont rapprochées par leur nom (sans tenir compte des majuscules ni des espaces en trop), quel que soit leur ordre dans chaque fichier.</p>
+        <div class="options" style="margin-bottom:14px">
+          <label><input type="checkbox" id="optEntete" checked>
+            <span>Mes fichiers ont une ligne d'en-tête
+              <small>Décoché : les colonnes sont empilées par position (1re avec 1re, etc.).</small></span></label>
+        </div>
+        <div class="tableau-wrap apercu"><table class="t" id="matrice"></table></div>
+        <div id="alerteColonnes"></div>
+      </section>
+
+      <!-- ③ Options -->
+      <section class="panneau cache" id="blocOptions">
+        <h2><span class="num">3</span> Choisis comment empiler</h2>
+        <div class="options">
+          <label><input type="radio" name="mode" value="union" checked>
+            <span>Garder toutes les colonnes
+              <small>Une colonne absente d'un fichier reste vide pour ses lignes.</small></span></label>
+          <label><input type="radio" name="mode" value="commun">
+            <span>Garder seulement les colonnes présentes partout</span></label>
+          <label><input type="checkbox" id="optSource" checked>
+            <span>Ajouter une colonne « fichier_source »
+              <small>Pour savoir d'où vient chaque ligne.</small></span></label>
+          <label><input type="checkbox" id="optDoublons">
+            <span>Retirer les lignes en double
+              <small>Deux lignes sont des doublons si toutes leurs valeurs sont identiques (la colonne source n'est pas comparée).</small></span></label>
+          <label><input type="checkbox" id="optVides" checked>
+            <span>Ignorer les lignes vides</span></label>
+          <div style="font-size:14.5px; margin-top:4px">Trier les lignes par :
+            <select id="triSortie" class="champ" style="padding:6px 10px; margin-left:6px"><option value="">— ordre des fichiers —</option></select>
+            <small style="display:block; color:var(--label); font-size:12.5px; margin-top:4px">Tri texte « naturel » : marche pour les dates au format 2026-06-01 et les nombres.</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- ④ Aperçu + export -->
+      <section class="panneau cache" id="blocResultat">
+        <h2><span class="num">4</span> Vérifie et télécharge</h2>
+        <div class="resume" id="resume"></div>
+        <div class="tableau-wrap apercu"><table class="t" id="apercu"></table></div>
+        <p class="dn-note" id="noteApercu"></p>
+
+        <div class="ligne-export">
+          <label>Séparateur :
+            <select id="sepSortie" class="champ">
+              <option value=";" selected>Point-virgule ( ; ) — Excel français</option>
+              <option value=",">Virgule ( , )</option>
+              <option value="&#9;">Tabulation</option>
+            </select>
+          </label>
+          <label>Nom :
+            <input id="nomSortie" class="champ" value="fusion.csv" style="width:180px">
+          </label>
+        </div>
+        <div class="options" style="margin-top:12px">
+          <label><input type="checkbox" id="optBom" checked>
+            <span>Compatible Excel (UTF-8 avec BOM)
+              <small>Évite les accents cassés à l'ouverture dans Excel.</small></span></label>
+        </div>
+        <div style="margin-top:18px">
+          <button class="bouton" id="telecharger" type="button"><span class="material-symbols-rounded">download</span> Télécharger le CSV fusionné</button>
+        </div>
+      </section>
+
+      <p class="dn-note" style="margin:0 auto; text-align:center">
+        Les valeurs ne sont jamais modifiées : pas de conversion de dates ni de nombres, ce que tu déposes est ce que tu récupères.
+      </p>
+    </div>
+  </main>
+
+  <footer class="pied">Cosmos — fait avec ❤️ par Rosalyna · <a class="pied-lien" href="../../donnees/index.html">Mes données</a></footer>
+  <button class="theme-toggle" id="themeToggle" type="button">
+    <span class="material-symbols-rounded" id="themeIcon" aria-hidden="true">dark_mode</span>
+    <span id="themeLabel">Mode nuit</span>
+  </button>
+  <script src="../../commun/js/theme.js"></script>
+
+  <script>
+  /* =====================================================================
+     AGRÉGATEUR CSV — tout tourne dans le navigateur, aucune dépendance.
+     Étapes : lire les fichiers → deviner encodage + séparateur → découper
+     en lignes/cellules → aligner les colonnes → empiler → exporter.
+     ===================================================================== */
+
+  const $ = (id) => document.getElementById(id);
+
+  // Liste des fichiers chargés. Chaque élément :
+  // { nom, encodage, sep, texte (brut), lignes: [[cellule, ...], ...] }  (lignes[0] = en-tête si coché)
+  let fichiers = [];
+
+  const NOMS_SEP = { ";": "point-virgule", ",": "virgule", "\t": "tabulation", "|": "barre |" };
+
+  /* ---------- 1. Lecture : encodage ----------
+     On essaie l'UTF-8 « strict » ; s'il échoue, le fichier vient sans doute
+     d'un vieil Excel Windows → Windows-1252. */
+  function decoder(buffer) {
+    try {
+      let texte = new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+      let enc = "UTF-8";
+      if (texte.charCodeAt(0) === 0xFEFF) { texte = texte.slice(1); enc = "UTF-8 (BOM)"; }
+      return { texte, encodage: enc };
+    } catch (e) {
+      return { texte: new TextDecoder("windows-1252").decode(buffer), encodage: "Windows-1252" };
+    }
+  }
+
+  /* ---------- 2. Découpage CSV ----------
+     Gère les guillemets : "a;b" reste une seule cellule, "" = un guillemet,
+     et un retour à la ligne entre guillemets ne coupe pas la ligne. */
+  function decouper(texte, sep, maxLignes = Infinity) {
+    const lignes = [];
+    let ligne = [], cellule = "", entreGuillemets = false;
+    for (let i = 0; i < texte.length; i++) {
+      const c = texte[i];
+      if (entreGuillemets) {
+        if (c === '"') {
+          if (texte[i + 1] === '"') { cellule += '"'; i++; }
+          else entreGuillemets = false;
+        } else cellule += c;
+      } else if (c === '"' && cellule === "") {
+        entreGuillemets = true;
+      } else if (c === sep) {
+        ligne.push(cellule); cellule = "";
+      } else if (c === "\n" || c === "\r") {
+        if (c === "\r" && texte[i + 1] === "\n") i++;
+        ligne.push(cellule); lignes.push(ligne);
+        ligne = []; cellule = "";
+        if (lignes.length >= maxLignes) return lignes;
+      } else cellule += c;
+    }
+    if (cellule !== "" || ligne.length) { ligne.push(cellule); lignes.push(ligne); }
+    return lignes;
+  }
+
+  /* ---------- 3. Deviner le séparateur ----------
+     Pour chaque candidat, on découpe les 20 premières lignes : le bon
+     séparateur donne le même nombre de colonnes (> 1) sur toutes les lignes. */
+  function devinerSeparateur(texte) {
+    let meilleur = ";", meilleurScore = -1;
+    for (const sep of [";", ",", "\t", "|"]) {
+      const ech = decouper(texte, sep, 20).filter(l => l.join("").trim() !== "");
+      if (!ech.length) continue;
+      const nb = ech[0].length;
+      if (nb < 2) continue;
+      const reguliers = ech.filter(l => l.length === nb).length / ech.length;
+      const score = reguliers * 100 + nb;
+      if (score > meilleurScore) { meilleurScore = score; meilleur = sep; }
+    }
+    return meilleur;
+  }
+
+  // Tri « naturel » : 6/2.csv avant 6/10.csv
+  const triNaturel = (a, b) => a.localeCompare(b, "fr", { numeric: true });
+
+  // liste = [{ fichier: File, chemin: "6/1.csv" }, ...]
+  // Le chemin (dossier/fichier) sert de nom : indispensable quand chaque
+  // dossier contient des fichiers portant le même nom (1.csv, 2.csv…).
+  async function ajouterFichiers(liste) {
+    const statut = $("statutLecture");
+    statut.classList.remove("err");
+    liste = liste.filter(x => /\.(csv|txt|tsv)$/i.test(x.chemin)).sort((a, b) => triNaturel(a.chemin, b.chemin));
+    let erreurs = [], deja = [];
+    for (let i = 0; i < liste.length; i++) {
+      const { fichier, chemin } = liste[i];
+      if (liste.length > 5) statut.textContent = `Lecture ${i + 1} / ${liste.length}…`;
+      if (fichiers.some(f => f.nom === chemin)) { deja.push(chemin); continue; }
+      try {
+        const { texte, encodage } = decoder(await fichier.arrayBuffer());
+        const sep = devinerSeparateur(texte);
+        const lignes = decouper(texte, sep);
+        fichiers.push({ nom: chemin, encodage, sep, texte, lignes });
+      } catch (e) {
+        console.error(e);
+        erreurs.push(chemin);
+      }
+    }
+
+    const msgs = [];
+    if (erreurs.length) msgs.push("Impossible de lire : " + erreurs.join(", "));
+    if (deja.length) msgs.push(`${deja.length} fichier(s) déjà présent(s), ignoré(s) : ${deja.slice(0, 5).join(", ")}${deja.length > 5 ? "…" : ""}`);
+    statut.textContent = msgs.join(" · ");
+    if (erreurs.length) statut.classList.add("err");
+    rafraichir();
+  }
+
+  /* ---------- 4. Aligner les colonnes ----------
+     Clé = nom en minuscules, espaces nettoyés → « Date », « date » et
+     « date  » tombent dans la même colonne. */
+  const cle = (nom) => nom.trim().replace(/\s+/g, " ").toLowerCase();
+
+  function colonnes() {
+    const avecEntete = $("optEntete").checked;
+    const ordre = [];            // clés dans l'ordre d'apparition
+    const libelle = {};          // clé → nom affiché (1re orthographe rencontrée)
+    const presence = {};         // clé → Set des index de fichiers
+    fichiers.forEach((f, idx) => {
+      const entete = avecEntete
+        ? (f.lignes[0] || [])
+        : Array.from({ length: Math.max(0, ...f.lignes.map(l => l.length)) }, (_, i) => "colonne_" + (i + 1));
+      entete.forEach((nom, i) => {
+        const k = cle(nom) || "(sans nom " + (i + 1) + ")";
+        if (!(k in libelle)) { ordre.push(k); libelle[k] = nom.trim() || k; presence[k] = new Set(); }
+        presence[k].add(idx);
+      });
+    });
+    return { ordre, libelle, presence };
+  }
+
+  /* ---------- 5. Empiler ---------- */
+  function fusionner() {
+    const avecEntete = $("optEntete").checked;
+    const mode = document.querySelector("input[name=mode]:checked").value;
+    const { ordre, libelle, presence } = colonnes();
+    const gardees = mode === "commun" ? ordre.filter(k => presence[k].size === fichiers.length) : ordre;
+    const source = $("optSource").checked, sansDoublons = $("optDoublons").checked, sansVides = $("optVides").checked;
+
+    const entete = gardees.map(k => libelle[k]);
+    if (source) entete.push("fichier_source");
+
+    const lignes = [], vues = new Set();
+    let doublons = 0, vides = 0;
+    fichiers.forEach((f, idx) => {
+      // position de chaque colonne gardée dans CE fichier (-1 = absente)
+      let positions;
+      if (avecEntete) {
+        const cles = (f.lignes[0] || []).map((n, i) => cle(n) || "(sans nom " + (i + 1) + ")");
+        positions = gardees.map(k => cles.indexOf(k));
+      } else {
+        positions = gardees.map(k => parseInt(k.split("_")[1], 10) - 1);
+      }
+      const corps = avecEntete ? f.lignes.slice(1) : f.lignes;
+      for (const l of corps) {
+        if (sansVides && l.join("").trim() === "") { vides++; continue; }
+        const sortie = positions.map(p => (p >= 0 && p < l.length ? l[p] : ""));
+        if (sansDoublons) {
+          const empreinte = sortie.join("\u0001");
+          if (vues.has(empreinte)) { doublons++; continue; }
+          vues.add(empreinte);
+        }
+        if (source) sortie.push(f.nom);
+        lignes.push(sortie);
+      }
+    });
+    // Tri optionnel sur une colonne (par son nom)
+    const col = entete.indexOf($("triSortie").value);
+    if (col >= 0) lignes.sort((a, b) => triNaturel(a[col], b[col]));
+    return { entete, lignes, doublons, vides, retirees: ordre.length - gardees.length };
+  }
+
+  /* ---------- 6. Export ---------- */
+  function versCSV(entete, lignes, sep) {
+    const echapper = (v) => (/["\r\n]/.test(v) || v.includes(sep)) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    return [entete, ...lignes].map(l => l.map(echapper).join(sep)).join("\r\n") + "\r\n";
+  }
+
+  $("telecharger").addEventListener("click", () => {
+    const { entete, lignes } = fusionner();
+    const sep = $("sepSortie").value;
+    const bom = $("optBom").checked ? "﻿" : "";
+    const blob = new Blob([bom + versCSV(entete, lignes, sep)], { type: "text/csv;charset=utf-8" });
+    let nom = $("nomSortie").value.trim() || "fusion.csv";
+    if (!/\.(csv|txt|tsv)$/i.test(nom)) nom += ".csv";
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = nom;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+
+  /* ---------- Affichage ---------- */
+  const echap = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const fmt = (n) => n.toLocaleString("fr-FR");
+
+  function rafraichir() {
+    const aDesFichiers = fichiers.length > 0;
+    ["blocFichiers", "blocColonnes", "blocOptions", "blocResultat"].forEach(id => $(id).classList.toggle("cache", !aDesFichiers));
+    if (!aDesFichiers) return;
+    const avecEntete = $("optEntete").checked;
+
+    // Liste des fichiers
+    $("listeFichiers").innerHTML = fichiers.map((f, i) => {
+      const nbLignes = (avecEntete ? f.lignes.slice(1) : f.lignes).filter(l => l.join("").trim() !== "").length;
+      const nbCol = avecEntete ? (f.lignes[0] || []).length : Math.max(0, ...f.lignes.map(l => l.length));
+      return `<tr>
+        <td><button class="mini" data-act="haut" data-i="${i}" ${i === 0 ? "disabled" : ""} title="Monter"><span class="material-symbols-rounded">arrow_upward</span></button><button class="mini" data-act="bas" data-i="${i}" ${i === fichiers.length - 1 ? "disabled" : ""} title="Descendre"><span class="material-symbols-rounded">arrow_downward</span></button></td>
+        <td>${echap(f.nom)}</td><td class="mono">${fmt(nbLignes)}</td><td class="mono">${nbCol}</td>
+        <td><select class="champ" data-sep="${i}" style="padding:5px 8px">${Object.entries(NOMS_SEP).map(([s, n]) => `<option value="${s === "\t" ? "&#9;" : echap(s)}" ${s === f.sep ? "selected" : ""}>${n}</option>`).join("")}</select></td>
+        <td class="mono">${f.encodage}</td>
+        <td><button class="mini" data-act="retirer" data-i="${i}" title="Retirer"><span class="material-symbols-rounded">close</span></button></td>
+      </tr>`;
+    }).join("");
+
+    // Matrice colonnes × fichiers
+    const { ordre, libelle, presence } = colonnes();
+    if (fichiers.length <= 8) {
+      // Peu de fichiers : une case par fichier
+      $("matrice").innerHTML =
+        `<thead><tr><th>Colonne</th>${fichiers.map((f, i) => `<th class="c" title="${echap(f.nom)}">F${i + 1}</th>`).join("")}</tr></thead><tbody>` +
+        ordre.map(k => `<tr><td>${echap(libelle[k])}</td>${fichiers.map((_, i) => presence[k].has(i) ? `<td class="c ok">✓</td>` : `<td class="c manque">—</td>`).join("")}</tr>`).join("") +
+        "</tbody>";
+    } else {
+      // Beaucoup de fichiers : un compteur + les fichiers où la colonne manque
+      $("matrice").innerHTML =
+        `<thead><tr><th>Colonne</th><th class="c">Présente dans</th><th>Absente de</th></tr></thead><tbody>` +
+        ordre.map(k => {
+          const n = presence[k].size, absents = fichiers.filter((_, i) => !presence[k].has(i)).map(f => f.nom);
+          return `<tr><td>${echap(libelle[k])}</td><td class="c ${n === fichiers.length ? "ok" : "manque"}">${n} / ${fichiers.length}</td>` +
+            `<td class="mono">${absents.length ? echap(absents.slice(0, 4).join(", ")) + (absents.length > 4 ? ` … (+${absents.length - 4})` : "") : ""}</td></tr>`;
+        }).join("") + "</tbody>";
+    }
+    const incompletes = ordre.filter(k => presence[k].size < fichiers.length);
+    $("alerteColonnes").innerHTML = incompletes.length
+      ? `<div class="alerte attention"><span class="material-symbols-rounded">warning</span><div><strong>${incompletes.length} colonne(s) absente(s) d'au moins un fichier.</strong> Si c'est le même contenu écrit autrement (ex. « Date relevé » / « Date_releve »), renomme l'en-tête dans le fichier d'origine puis redépose-le.</div></div>`
+      : `<div class="alerte info"><span class="material-symbols-rounded">check_circle</span><div>Toutes les colonnes sont présentes dans tous les fichiers.</div></div>`;
+
+    // Liste des colonnes proposées pour le tri
+    const choix = $("triSortie").value;
+    $("triSortie").innerHTML = `<option value="">— ordre des fichiers —</option>` +
+      ordre.map(k => `<option ${libelle[k] === choix ? "selected" : ""}>${echap(libelle[k])}</option>`).join("");
+
+    // Résultat
+    const r = fusionner();
+    const kpi = (val, lib) => `<div class="kpi"><div class="val">${val}</div><div class="lib">${lib}</div></div>`;
+    $("resume").innerHTML = kpi(fmt(fichiers.length), "fichier(s)") + kpi(fmt(r.lignes.length), "lignes au total") +
+      kpi(fmt(r.entete.length), "colonnes") +
+      (r.doublons ? kpi(fmt(r.doublons), "doublons retirés") : "") +
+      (r.retirees ? kpi(fmt(r.retirees), "colonnes écartées") : "");
+    const N = 100;
+    $("apercu").innerHTML =
+      `<thead><tr>${r.entete.map(h => `<th>${echap(h)}</th>`).join("")}</tr></thead><tbody>` +
+      r.lignes.slice(0, N).map(l => `<tr>${l.map(v => `<td>${echap(v)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+    $("noteApercu").textContent = r.lignes.length > N ? `Aperçu des ${N} premières lignes sur ${fmt(r.lignes.length)}.` : "";
+  }
+
+  /* ---------- Événements ---------- */
+  const depuisInput = (e) => {
+    ajouterFichiers([...e.target.files].map(f => ({ fichier: f, chemin: f.webkitRelativePath || f.name })));
+    e.target.value = "";
+  };
+  $("fichiers").addEventListener("change", depuisInput);
+
+  /* Choix d'un dossier « parent » (ex. Téléchargements qui contient 6, 7, 8, 9) :
+     le navigateur ne laisse choisir qu'UN dossier à la fois, donc on regroupe
+     ses fichiers par sous-dossier et on laisse cocher ceux à fusionner. */
+  let enAttente = {}; // groupe → [{ fichier, chemin }]
+  $("dossier").addEventListener("change", (e) => {
+    const tous = [...e.target.files].filter(f => /\.(csv|txt|tsv)$/i.test(f.name));
+    e.target.value = "";
+    if (!tous.length) { $("statutLecture").textContent = "Aucun fichier CSV dans ce dossier."; return; }
+    enAttente = {};
+    for (const f of tous) {
+      const parties = f.webkitRelativePath.split("/");        // ["Downloads", "6", "1.csv"]
+      const groupe = parties.length > 2 ? parties[1] : "(fichiers à la racine)";
+      (enAttente[groupe] = enAttente[groupe] || []).push({ fichier: f, chemin: parties.slice(1).join("/") });
+    }
+    const groupes = Object.keys(enAttente).sort(triNaturel);
+    // Un seul dossier choisi directement (ex. « 6 ») : on garde « 6/1.csv » et on ajoute tout de suite
+    if (groupes.length === 1 && groupes[0] === "(fichiers à la racine)") {
+      return ajouterFichiers(tous.map(f => ({ fichier: f, chemin: f.webkitRelativePath })));
+    }
+    const aSousDossiers = groupes.some(g => g !== "(fichiers à la racine)");
+    $("choixTitre").textContent = `Dossier « ${tous[0].webkitRelativePath.split("/")[0]} » — ${groupes.length} groupe(s), ${tous.length} fichier(s) CSV.`;
+    $("listeDossiers").innerHTML = groupes.map(g => {
+      const coche = !(aSousDossiers && g === "(fichiers à la racine)");
+      return `<label><input type="checkbox" value="${echap(g)}" ${coche ? "checked" : ""}><span>${echap(g)}<small>${enAttente[g].length} fichier(s)</small></span></label>`;
+    }).join("");
+    $("choixDossiers").classList.remove("cache");
+  });
+  const cases = () => [...$("listeDossiers").querySelectorAll("input")];
+  $("toutCocher").addEventListener("click", () => cases().forEach(c => c.checked = true));
+  $("toutDecocher").addEventListener("click", () => cases().forEach(c => c.checked = false));
+  $("annulerDossiers").addEventListener("click", () => { enAttente = {}; $("choixDossiers").classList.add("cache"); });
+  $("validerDossiers").addEventListener("click", () => {
+    const liste = cases().filter(c => c.checked).flatMap(c => enAttente[c.value]);
+    enAttente = {};
+    $("choixDossiers").classList.add("cache");
+    if (liste.length) ajouterFichiers(liste);
+  });
+
+  // Parcourt un dossier déposé (et ses sous-dossiers) pour lister ses fichiers
+  async function lireEntree(entree, sortie) {
+    if (entree.isFile) {
+      const fichier = await new Promise((ok, ko) => entree.file(ok, ko));
+      sortie.push({ fichier, chemin: entree.fullPath.replace(/^\//, "") });
+    } else if (entree.isDirectory) {
+      const lecteur = entree.createReader();
+      let lot;
+      do { // readEntries rend les fichiers par paquets : on boucle jusqu'au paquet vide
+        lot = await new Promise((ok, ko) => lecteur.readEntries(ok, ko));
+        for (const e of lot) await lireEntree(e, sortie);
+      } while (lot.length);
+    }
+  }
+
+  const depot = $("depot");
+  ["dragenter", "dragover"].forEach(ev => depot.addEventListener(ev, (e) => { e.preventDefault(); depot.classList.add("survol"); }));
+  ["dragleave", "drop"].forEach(ev => depot.addEventListener(ev, (e) => { e.preventDefault(); depot.classList.remove("survol"); }));
+  depot.addEventListener("drop", async (e) => {
+    const entrees = [...e.dataTransfer.items].map(it => it.webkitGetAsEntry && it.webkitGetAsEntry()).filter(Boolean);
+    if (!entrees.length) return ajouterFichiers([...e.dataTransfer.files].map(f => ({ fichier: f, chemin: f.name })));
+    const liste = [];
+    for (const en of entrees) await lireEntree(en, liste);
+    ajouterFichiers(liste);
+  });
+  // Éviter que le navigateur ouvre un fichier lâché à côté de la zone
+  window.addEventListener("dragover", (e) => e.preventDefault());
+  window.addEventListener("drop", (e) => e.preventDefault());
+
+  $("listeFichiers").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-act]"); if (!b) return;
+    const i = +b.dataset.i;
+    if (b.dataset.act === "retirer") fichiers.splice(i, 1);
+    if (b.dataset.act === "haut") [fichiers[i - 1], fichiers[i]] = [fichiers[i], fichiers[i - 1]];
+    if (b.dataset.act === "bas") [fichiers[i + 1], fichiers[i]] = [fichiers[i], fichiers[i + 1]];
+    rafraichir();
+  });
+
+  // Corriger à la main un séparateur mal deviné : on relit le texte d'origine
+  $("listeFichiers").addEventListener("change", (e) => {
+    const s = e.target.closest("select[data-sep]"); if (!s) return;
+    const f = fichiers[+s.dataset.sep];
+    f.sep = s.value;
+    f.lignes = decouper(f.texte, f.sep);
+    rafraichir();
+  });
+
+  $("trierNom").addEventListener("click", () => { fichiers.sort((a, b) => triNaturel(a.nom, b.nom)); rafraichir(); });
+  $("toutRetirer").addEventListener("click", () => { fichiers = []; rafraichir(); });
+  document.querySelectorAll("#optEntete, #optSource, #optDoublons, #optVides, #triSortie, input[name=mode]").forEach(el => el.addEventListener("change", rafraichir));
+  </script>
+  <script src="../../commun/js/projects.js"></script>
+  <script src="../../commun/js/nav.js"></script>
+</body>
+</html>

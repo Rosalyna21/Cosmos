@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <script>/*cosmos-antiflash*/ try{var t=localStorage.getItem("cosmos-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("pre-dark");}catch(e){}</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finances — Cosmos</title>
+  <link rel="icon" type="image/svg+xml" href="../commun/img/favicon.svg">
+  <link rel="stylesheet" href="../commun/css/style.css">
+</head>
+<body class="p-budget p-finances" data-nav="Finances">
+<script>if(document.documentElement.classList.contains("pre-dark"))document.body.classList.add("dark");</script>
+<div style="min-height:100vh;">
+
+  <!-- ═══ NAV — Épargne a disparu ═══ -->
+  <nav class="nav">
+    <a class="brand" href="../index.html">
+      <span class="brand-logo">
+        <img class="logo-day" src="../commun/img/logo-day.svg" alt="">
+        <img class="logo-night" src="../commun/img/logo-night.svg" alt="">
+      </span>
+      <span class="brand-name">Cosmos</span>
+    </a>
+    <div class="nav-pills"></div>
+  </nav>
+
+  <!-- ═══ HERO ═══ -->
+  <div style="max-width:1120px;margin:0 auto;padding:22px 40px 0;text-align:center;">
+    <h1 style="margin:0;font-size:58px;line-height:1.02;font-weight:600;letter-spacing:-1.9px;">Une relation apaisée<br>à l'argent</h1>
+    <p style="margin:16px auto 0;font-size:18px;color:var(--ink2);max-width:600px;line-height:1.55;">Deux calculateurs pour t'aider à décider : intérêts composés, mensualités, objectifs d'épargne. Tout reste dans ton navigateur.</p>
+  </div>
+
+  <!-- ═══ ONGLETS (masqués pour le plancher : seuls les calculateurs sont exposés) ═══ -->
+  <div style="max-width:1120px;margin:0 auto;padding:30px 40px 0;display:none;justify-content:center;">
+    <div id="tabs" class="fin-onglets" style="display:inline-flex;gap:3px;background:var(--soft);border-radius:999px;padding:5px;box-shadow:0 14px 34px -20px rgba(90,60,120,.5);flex-wrap:wrap;justify-content:center;">
+      <!-- onglets « Où j'en suis » et « Le mur » retirés du plancher (pages en brouillons) -->
+      <button class="tab" data-tab="principes" style="padding:10px 20px;border-radius:999px;background:linear-gradient(135deg,#A78BE8,#8CC7F0);color:#fff;font-weight:600;font-size:15px;">Point de départ</button>
+      <button class="tab" data-tab="flux" style="padding:10px 20px;border-radius:999px;background:transparent;color:var(--ink2);font-weight:600;font-size:15px;">Mon budget type</button>
+      <button class="tab" data-tab="epargne" style="padding:10px 20px;border-radius:999px;background:transparent;color:var(--ink2);font-weight:600;font-size:15px;">Mon épargne</button>
+      <button class="tab" data-tab="placer" style="padding:10px 20px;border-radius:999px;background:transparent;color:var(--ink2);font-weight:600;font-size:15px;">Où placer</button>
+      <button class="tab" data-tab="pratique" style="padding:10px 20px;border-radius:999px;background:transparent;color:var(--ink2);font-weight:600;font-size:15px;">Pratique</button>
+    </div>
+  </div>
+
+  <!-- ═══ FIL FLUX → STOCK (masqué pour le plancher) ═══ -->
+  <div style="max-width:1120px;margin:0 auto;padding:22px 40px 0;display:none;justify-content:center;">
+    <div style="display:inline-flex;align-items:center;gap:12px;background:var(--soft);padding:9px 18px;border-radius:999px;font-size:13.5px;color:var(--ink2);flex-wrap:wrap;justify-content:center;">
+      <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,#FBBF24,#FF7A45);"></span>Le <b style="color:var(--ink);">flux</b> — ce qui entre chaque mois</span>
+      <span class="ic" style="font-size:17px;">arrow_forward</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,#34D399,#22B4C4);"></span>Le <b style="color:var(--ink);">stock</b> — ce qui s'accumule</span>
+    </div>
+  </div>
+
+  <!-- ═══════════ ONGLET · MON BUDGET TYPE ═══════════ -->
+  <section id="pane-flux" style="max-width:1120px;margin:0 auto;padding:38px 40px 90px;display:none;flex-direction:column;gap:26px;">
+
+    <div style="display:flex;align-items:center;gap:15px;">
+      <span style="width:54px;height:54px;flex:none;border-radius:18px;background:linear-gradient(135deg,#FBBF24,#FF7A45);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 17px 32px -16px rgba(255,140,60,.85);"><span class="ic" style="font-size:29px;">water_drop</span></span>
+      <div>
+        <h2>Mon budget type</h2>
+        <p style="margin:5px 0 0;color:var(--ink2);font-size:15px;">Ce qui entre se répartit par <b>affectation</b> — et décide de ce que tu peux mettre de côté.</p>
+      </div>
+    </div>
+
+    <!-- ① point de départ -->
+    <div class="card" style="display:flex;flex-direction:column;gap:20px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-amber);">① MON POINT DE DÉPART</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(199,127,19,.3),transparent);"></div>
+      </div>
+
+      <div style="display:flex;gap:26px;flex-wrap:wrap;">
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:14px;font-weight:600;">
+          <label for="income">Mes revenus nets / mois</label>
+          <span style="display:flex;align-items:center;gap:8px;"><input id="income" class="fld" inputmode="decimal" value="2400" style="width:124px;"><span class="mono" style="color:var(--ink2);">€</span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:14px;font-weight:600;">
+          <label for="charges">Mes charges fixes / mois</label>
+          <span style="display:flex;align-items:center;gap:8px;"><input id="charges" class="fld" inputmode="decimal" style="width:124px;"><span class="mono" style="color:var(--ink2);">€</span></span>
+          <span id="chargesSource" style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.5px;font-weight:400;color:var(--ink2);"></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;justify-content:flex-start;">
+          <span style="font-size:14px;font-weight:600;">Ce qu'il te reste</span>
+          <span id="resteVivre" class="num" style="font-size:28px;">1 320 €</span>
+          <span id="chargesPct" style="font-size:12px;color:var(--ink2);">tes charges pèsent 45 % de tes revenus</span>
+        </div>
+      </div>
+
+      <div id="reco"></div>
+    </div>
+
+    <!-- ② la règle -->
+    <div class="card" style="display:flex;flex-direction:column;gap:22px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-violet);">② MA RÈGLE DE RÉPARTITION</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(91,63,224,.3),transparent);"></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:space-between;">
+        <div id="modelSeg" style="display:inline-flex;gap:3px;background:var(--soft);border-radius:999px;padding:4px;flex-wrap:wrap;">
+          <button class="seg" data-model="503020" style="padding:9px 16px;border-radius:999px;background:linear-gradient(135deg,#FBBF24,#FF7A45);color:#fff;font-weight:600;font-size:13.5px;">50 / 30 / 20</button>
+          <button class="seg" data-model="pots" style="padding:9px 16px;border-radius:999px;background:transparent;color:var(--ink2);font-weight:600;font-size:13.5px;">6 comptes</button>
+          <button class="seg" data-model="sansratio" style="padding:9px 16px;border-radius:999px;background:transparent;color:var(--ink2);font-weight:600;font-size:13.5px;">Sans ratios</button>
+          <button class="seg" data-model="custom" style="padding:9px 16px;border-radius:999px;background:transparent;color:var(--ink2);font-weight:600;font-size:13.5px;">Personnalisé</button>
+        </div>
+        <a href="#autres-regles" style="display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;text-decoration:none;">Voir d'autres règles<span class="ic" style="font-size:17px;">arrow_forward</span></a>
+      </div>
+
+      <div id="ruleIntro" style="font-size:14px;color:var(--ink2);line-height:1.55;"></div>
+
+      <!-- vue ratios -->
+      <div id="ratioView" style="display:flex;flex-direction:column;gap:20px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <span style="font-size:13.5px;color:var(--ink2);">Je saisis en</span>
+          <div id="unitSeg" style="display:inline-flex;gap:3px;background:var(--soft);border-radius:999px;padding:4px;">
+            <button class="seg" data-unit="eur" style="min-height:36px;padding:7px 18px;border-radius:999px;background:linear-gradient(135deg,#A78BE8,#8CC7F0);color:#fff;font-weight:600;font-size:13.5px;">€</button>
+            <button class="seg" data-unit="pct" style="min-height:36px;padding:7px 18px;border-radius:999px;background:transparent;color:var(--ink2);font-weight:600;font-size:13.5px;">%</button>
+          </div>
+          <span id="unitHint" style="font-size:12.5px;color:var(--ink2);">l'autre unité se calcule toute seule</span>
+        </div>
+        <div>
+          <div id="fluxBar" style="display:flex;height:62px;border-radius:16px;overflow:hidden;box-shadow:0 14px 28px -18px rgba(90,60,120,.5);"></div>
+          <div id="fluxLegend" style="margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;"></div>
+          <div style="margin-top:9px;font-size:13px;color:var(--ink2);">La barre est à l'échelle de tes revenus — ce qui n'est pas affecté reste visible.</div>
+          <div id="fluxAlerte" style="margin-top:10px;"></div>
+        </div>
+        <div id="fluxRows" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <div id="customAdd"></div>
+      </div>
+
+      <!-- vue sans ratios -->
+      <div id="methodView" style="display:none;flex-direction:column;gap:16px;"></div>
+
+      <!-- résultat -->
+      <div id="fluxResult" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 22px;border-radius:20px;background:linear-gradient(135deg,rgba(52,211,153,.16),rgba(34,180,196,.16));border:1.5px solid rgba(52,211,153,.32);">
+        <span class="ic" style="font-size:30px;color:var(--acc-green);flex:none;">savings</span>
+        <div style="flex:1;min-width:220px;">
+          <div style="font-size:15px;font-weight:600;">Tu peux épargner <span id="saveAmount" class="num" style="font-size:26px;">480 €</span> par mois</div>
+          <div style="font-size:13.5px;color:var(--ink2);">soit <span id="saveYear" class="mono">5 760 €</span> sur un an — c'est ce montant qui alimente ta pyramide.</div>
+        </div>
+        <button class="tab" data-tab="epargne" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:14px;background:linear-gradient(135deg,#34D399,#22B4C4);color:#fff;font-weight:600;font-size:14.5px;box-shadow:0 14px 28px -14px rgba(34,180,180,.8);">
+          Structurer cette épargne<span class="ic" style="font-size:19px;">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- autres règles -->
+    <div class="card" id="autres-regles" style="display:flex;flex-direction:column;gap:16px;">
+      <h3>Les autres règles connues</h3>
+      <p style="margin:0;font-size:14px;color:var(--ink2);">Pour information — chacune déplace le curseur selon ce qu'elle veut protéger.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:14px;">
+        <div style="padding:15px 17px;border-radius:16px;background:var(--soft);"><b style="font-size:14.5px;">80 / 20</b><div style="font-size:13px;color:var(--ink2);margin-top:5px;line-height:1.5;">« Paie-toi en premier » : 20 % mis de côté d'abord, tu vis sur le reste. La plus simple à tenir.</div></div>
+        <div style="padding:15px 17px;border-radius:16px;background:var(--soft);"><b style="font-size:14.5px;">70 / 20 / 10</b><div style="font-size:13px;color:var(--ink2);margin-top:5px;line-height:1.5;">70 % dépenses courantes · 20 % épargne · 10 % dettes ou dons.</div></div>
+        <div style="padding:15px 17px;border-radius:16px;background:var(--soft);"><b style="font-size:14.5px;">50 / 15 / 5</b><div style="font-size:13px;color:var(--ink2);margin-top:5px;line-height:1.5;">50 % besoins · 15 % retraite · 5 % précaution — le reste en envies. Isole l'horizon long.</div></div>
+        <div style="padding:15px 17px;border-radius:16px;background:var(--soft);"><b style="font-size:14.5px;">Conscious Spending Plan</b><div style="font-size:13px;color:var(--ink2);margin-top:5px;line-height:1.5;">50–60 % fixes · 10 % investi · 5–10 % projets · 20–35 % « plaisir sans culpabilité ». Volontairement souple.</div></div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:flex-start;gap:13px;padding:18px 22px;border-radius:20px;background:var(--soft);font-size:14px;color:var(--ink2);">
+      <span class="ic" style="font-size:21px;color:var(--acc-amber);flex:none;">lightbulb</span>
+      <span style="flex:1;min-width:220px;">Ces pourcentages sont des <b style="color:var(--ink);">repères pour démarrer</b>, pas des vérités. Si tes besoins pèsent 60 %, ce n'est pas un échec — c'est une information. Pédagogie générale, pas du conseil financier.</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ ONGLET · MON ÉPARGNE ═══════════ -->
+  <section id="pane-epargne" style="display:none;max-width:1120px;margin:0 auto;padding:38px 40px 90px;flex-direction:column;gap:26px;">
+
+    <div style="display:flex;align-items:center;gap:15px;">
+      <span style="width:54px;height:54px;flex:none;border-radius:18px;background:linear-gradient(135deg,#34D399,#22B4C4);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 17px 32px -16px rgba(34,180,180,.85);"><span class="ic" style="font-size:29px;">layers</span></span>
+      <div>
+        <h2>Mon épargne accumulée</h2>
+        <p style="margin:5px 0 0;color:var(--ink2);font-size:15px;">Ce qui s'accumule se répartit par <b>niveau de risque</b> — c'est la pyramide.</p>
+      </div>
+    </div>
+
+    <!-- rappel du flux : le chaînon -->
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 22px;border-radius:20px;background:linear-gradient(135deg,rgba(251,191,36,.18),rgba(52,211,153,.18));border:1.5px solid rgba(251,191,36,.32);">
+      <span class="ic" style="font-size:26px;color:var(--acc-amber);flex:none;">water_drop</span>
+      <div style="flex:1;min-width:230px;font-size:14.5px;">
+        Depuis <b>Mon budget type</b> — tu mets de côté <span id="echoSave" class="num" style="font-size:22px;">480 €</span> par mois
+        <div style="font-size:13px;color:var(--ink2);margin-top:2px;">C'est ce montant que tu répartis dans la pyramide ci-dessous.</div>
+      </div>
+      <button class="tab" data-tab="flux" style="display:inline-flex;align-items:center;gap:7px;padding:10px 17px;border-radius:13px;background:var(--surface);color:var(--ink);font-weight:600;font-size:13.5px;box-shadow:0 12px 24px -14px rgba(90,60,120,.5);"><span class="ic" style="font-size:17px;">tune</span>Modifier mon budget type</button>
+    </div>
+
+    <!-- étapes -->
+    <div style="display:flex;gap:9px;flex-wrap:wrap;">
+      <span style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--surface);font-size:13.5px;font-weight:600;box-shadow:0 12px 26px -18px rgba(90,60,120,.5);"><span style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#34D399,#22B4C4);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;">1</span>Comprendre</span>
+      <span style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--surface);font-size:13.5px;font-weight:600;box-shadow:0 12px 26px -18px rgba(90,60,120,.5);"><span style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#FBBF24,#FF7A45);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;">2</span>Mon matelas</span>
+      <span style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:var(--surface);font-size:13.5px;font-weight:600;box-shadow:0 12px 26px -18px rgba(90,60,120,.5);"><span style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#A78BE8,#8CC7F0);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;">3</span>Ma répartition</span>
+    </div>
+
+    <!-- ① pyramide, unique et pleine taille -->
+    <div class="card" style="display:flex;flex-direction:column;gap:18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-green);">① COMPRENDRE</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(14,127,99,.3),transparent);"></div>
+      </div>
+      <h3>La pyramide de l'épargne</h3>
+      <p style="margin:0;font-size:14.5px;color:var(--ink2);max-width:640px;">On la bâtit de bas en haut : chaque étage suppose le précédent solide. La base — ta sécurité — doit être la plus large.</p>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0;">
+        <div style="width:38%;min-width:150px;padding:13px;border-radius:13px;background:linear-gradient(135deg,#F472B6,#A855F7);color:#fff;text-align:center;text-shadow:0 1px 3px rgba(60,20,80,.35);"><div style="font-size:15px;font-weight:600;">Le pari <span class="mono" style="font-size:13.5px;">10 %</span></div><div class="mono" style="font-size:12.5px;opacity:.95;">facultatif · ce qu'on peut perdre</div></div>
+        <div style="width:56%;min-width:200px;padding:13px;border-radius:13px;background:linear-gradient(135deg,#A78BE8,#8CC7F0);color:#fff;text-align:center;text-shadow:0 1px 3px rgba(40,30,90,.35);"><div style="font-size:15px;font-weight:600;">Le long terme <span class="mono" style="font-size:13.5px;">20 %</span></div><div class="mono" style="font-size:12.5px;opacity:.95;">8 ans et + · faire fructifier</div></div>
+        <div style="width:76%;min-width:250px;padding:13px;border-radius:13px;background:linear-gradient(135deg,#FBBF24,#FF7A45);color:#fff;text-align:center;text-shadow:0 1px 3px rgba(120,60,0,.4);"><div style="font-size:15px;font-weight:600;">Les projets <span class="mono" style="font-size:13.5px;">25 %</span></div><div class="mono" style="font-size:12.5px;opacity:.95;">1 à 5 ans · objectifs datés</div></div>
+        <div style="width:96%;padding:13px;border-radius:13px;background:linear-gradient(135deg,#34D399,#22B4C4);color:#fff;text-align:center;text-shadow:0 1px 3px rgba(0,70,60,.4);"><div style="font-size:15px;font-weight:600;">La sécurité <span class="mono" style="font-size:13.5px;">45 %</span></div><div class="mono" style="font-size:12.5px;opacity:.95;">disponible · épargne de précaution</div></div>
+      </div>
+    </div>
+
+    <!-- ①bis profil d'investisseur -->
+    <div class="card" style="display:flex;flex-direction:column;gap:18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-purple);">①&nbsp;bis · MON PROFIL</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(122,63,208,.3),transparent);"></div>
+      </div>
+      <h3>Quel investisseur je suis</h3>
+      <p style="margin:0;font-size:14.5px;color:var(--ink2);max-width:680px;line-height:1.55;">La base de la pyramide — ta sécurité — est la même pour tout le monde. Ce qui change selon le profil, c'est le poids des étages du haut. Ce choix fixe les cibles utilisées partout ensuite.</p>
+      <div id="profilSel"></div>
+    </div>
+
+    <!-- ② matelas, replié -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <button class="acc" id="accMatelas" aria-expanded="false" style="width:100%;display:flex;align-items:center;gap:15px;padding:22px 28px;text-align:left;">
+        <span style="width:44px;height:44px;flex:none;border-radius:14px;background:linear-gradient(135deg,#FBBF24,#FF7A45);display:flex;align-items:center;justify-content:center;color:#fff;"><span class="ic" style="font-size:24px;">shield</span></span>
+        <span style="flex:1;">
+          <span style="display:block;font-size:11px;font-weight:700;letter-spacing:1.2px;font-family:'Space Mono',monospace;color:var(--acc-amber);">② MON MATELAS</span>
+          <span style="display:block;font-size:19px;font-weight:600;margin-top:3px;">Combien pour mon épargne de sécurité ?</span>
+        </span>
+        <span class="mono" style="font-size:13px;color:var(--ink2);">4 questions</span>
+        <span class="ic" id="accMatelasIc" style="font-size:26px;color:var(--ink2);flex:none;">expand_more</span>
+      </button>
+      <div id="bodyMatelas" style="display:none;padding:0 28px 26px;">
+        <div style="padding:20px 22px;border-radius:20px;background:var(--soft);border:1.5px solid var(--line);">
+          <div style="font-size:14px;color:var(--ink2);margin-bottom:6px;">Base de <b style="color:var(--ink);">3 mois</b> pour tout le monde — les points s'ajoutent.</div>
+          <div id="quiz" style="display:flex;flex-direction:column;"></div>
+          <div style="margin-top:18px;padding:17px 20px;border-radius:17px;background:linear-gradient(135deg,rgba(52,211,153,.17),rgba(34,180,196,.17));display:flex;align-items:center;gap:15px;flex-wrap:wrap;">
+            <span class="ic" style="font-size:27px;color:var(--acc-green);flex:none;">savings</span>
+            <div style="flex:1;min-width:190px;">
+              <div style="font-size:15px;font-weight:600;">Ta cible : <span id="qMonths" class="num" style="font-size:23px;">3 mois</span></div>
+              <div style="font-size:13px;color:var(--ink2);">soit <span id="qAmount" class="mono">4 200 €</span> pour <span id="qSpendEcho" class="mono">1 400 €</span> de dépenses mensuelles</div>
+            </div>
+            <label style="display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink2);">Dépenses / mois<input id="spend" class="fld" inputmode="decimal" value="1400" style="width:96px;"><span class="mono">€</span></label>
+            <button id="reportBtn" style="display:inline-flex;align-items:center;gap:7px;border:0;cursor:pointer;font-family:'Fredoka',sans-serif;font-size:13.5px;font-weight:600;padding:11px 17px;border-radius:13px;background:var(--surface);color:var(--ink);box-shadow:0 12px 24px -14px rgba(90,60,120,.5);"><span class="ic" style="font-size:17px;">south</span>Reporter dans ma répartition</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ atelier de répartition -->
+    <div class="card" style="display:flex;flex-direction:column;gap:20px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-violet);">③ MA SITUATION</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(91,63,224,.3),transparent);"></div>
+      </div>
+
+      <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;justify-content:space-between;">
+        <h3>Où en est mon épargne aujourd'hui</h3>
+        <div class="mono" style="font-size:13px;color:var(--ink2);">Total : <span id="potTotal-situation">10 000 €</span></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:290px 1fr;gap:28px;align-items:start;" id="repGrid">
+
+        <!-- colonne gauche : la pyramide vivante -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="mono" style="font-size:11px;letter-spacing:1px;color:var(--ink2);">MA PYRAMIDE, EN DIRECT</div>
+          <div id="livePyr-situation" style="display:flex;flex-direction:column;align-items:center;gap:7px;min-height:180px;justify-content:flex-end;"></div>
+          <div id="pyrWarn-situation"></div>
+          <div style="padding:14px 16px;border-radius:16px;background:var(--soft);">
+            <div class="mono" style="font-size:11px;letter-spacing:1px;color:var(--ink2);margin-bottom:8px;">PROFIL DE RISQUE</div>
+            <div id="riskBar-situation" style="display:flex;height:14px;border-radius:7px;overflow:hidden;"></div>
+            <div id="riskText-situation" style="font-size:13.5px;margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <!-- colonne droite : les barres -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div id="pots-situation" style="display:flex;flex-direction:column;gap:13px;"></div>
+          <div style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--ink2);"><span class="ic" style="font-size:18px;color:#7C5CFF;flex:none;">info</span><span style="flex:1;min-width:200px;">Chaque barre montre la <b>part réelle</b> de la poche. Le trait vertical marque la <b>cible recommandée</b> : à gauche tu es en dessous, à droite au-dessus.</span></div>
+        </div>
+      </div>
+
+      <div id="analyse"></div>
+    </div>
+
+    <!-- ④ stratégie de remplissage -->
+    <div class="card" style="display:flex;flex-direction:column;gap:20px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-rose);">④ MA STRATÉGIE</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(192,36,107,.3),transparent);"></div>
+      </div>
+      <h3>Où envoyer mes <span id="stratSave" class="num" style="font-size:22px;">480 €</span> chaque mois ?</h3>
+      <p style="margin:0;font-size:14.5px;color:var(--ink2);max-width:660px;">Quatre façons de remplir la pyramide. Aucune n'est « la bonne » — elles dépendent d'où tu en es. Choisis-en une pour voir la répartition mensuelle.</p>
+      <div id="strats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;"></div>
+      <div id="stratDetail"></div>
+    </div>
+
+    <!-- ⑤ mon objectif -->
+    <div class="card" style="display:flex;flex-direction:column;gap:20px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-teal);">⑤ MON OBJECTIF</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(14,124,140,.3),transparent);"></div>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;justify-content:space-between;">
+        <h3>Vers quoi je veux aller</h3>
+        <div class="mono" style="font-size:13px;color:var(--ink2);">Total : <span id="potTotal-objectif">10 000 €</span></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:290px 1fr;gap:28px;align-items:start;" id="repGrid2">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="mono" style="font-size:11px;letter-spacing:1px;color:var(--ink2);">LA PYRAMIDE VISÉE</div>
+          <div id="livePyr-objectif" style="display:flex;flex-direction:column;align-items:center;gap:7px;min-height:180px;justify-content:flex-end;"></div>
+          <div id="pyrWarn-objectif"></div>
+          <div style="padding:14px 16px;border-radius:16px;background:var(--soft);">
+            <div class="mono" style="font-size:11px;letter-spacing:1px;color:var(--ink2);margin-bottom:8px;">PROFIL DE RISQUE VISÉ</div>
+            <div id="riskBar-objectif" style="display:flex;height:14px;border-radius:7px;overflow:hidden;"></div>
+            <div id="riskText-objectif" style="font-size:13.5px;margin-top:10px;"></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div id="pots-objectif" style="display:flex;flex-direction:column;gap:13px;"></div>
+          <div id="ecart"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:13.5px;color:var(--ink2);">Tes chiffres restent dans ton navigateur et sont mémorisés pour la prochaine visite.</div>
+  </section>
+
+  <!-- ═══════════ ONGLET · POINT DE DÉPART ═══════════ -->
+  <section id="pane-principes" style="display:flex;max-width:1120px;margin:0 auto;padding:38px 40px 90px;flex-direction:column;gap:26px;">
+
+    <div style="display:flex;align-items:center;gap:15px;">
+      <span style="width:54px;height:54px;flex:none;border-radius:18px;background:linear-gradient(135deg,#F472B6,#A855F7);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 17px 32px -16px rgba(168,85,247,.85);"><span class="ic" style="font-size:29px;">psychology</span></span>
+      <div>
+        <h2>Point de départ</h2>
+        <p style="margin:5px 0 0;color:var(--ink2);font-size:15px;">Avant les méthodes, se comprendre — pour choisir en connaissance de cause.</p>
+      </div>
+    </div>
+
+    <!-- Pas de leçon ici -->
+    <div class="card" style="display:flex;align-items:flex-start;gap:16px;border-left:5px solid #A855F7;">
+      <span class="ic" aria-hidden="true" style="font-size:26px;color:var(--acc-purple);flex:none;">favorite</span>
+      <div style="flex:1;min-width:240px;">
+        <h3>Pas de leçon ici</h3>
+        <p style="margin:8px 0 0;font-size:14.5px;color:var(--ink2);line-height:1.6;">Il n'y a pas <b>une</b> bonne façon de vivre avec l'argent. Épargner beaucoup n'est pas une vertu, dépenser n'est pas une faute — tout dépend de ce que tu veux que ton argent serve. Ce qui compte, c'est que tes choix soient <b>les tiens</b>, faits en connaissance de cause plutôt que subis ou hérités sans y penser.</p>
+        <p style="margin:10px 0 0;font-size:14.5px;color:var(--ink2);line-height:1.6;">Les blocs ci-dessous n'attendent aucune bonne réponse : ils servent à mettre des mots sur ce qui te fait déjà agir.</p>
+      </div>
+    </div>
+
+    <!-- Carte d'orientation -->
+    <div class="card" id="synthese" style="display:flex;flex-direction:column;gap:16px;"></div>
+
+    <!-- ① Ce que l'argent déclenche chez moi -->
+    <div class="card" id="sec-rapport" style="scroll-margin-top:20px;display:flex;flex-direction:column;gap:18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-violet);">① CE QUE L'ARGENT DÉCLENCHE CHEZ MOI</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(91,63,224,.3),transparent);"></div>
+      </div>
+      <p style="margin:0;color:var(--ink2);font-size:14.5px;line-height:1.55;max-width:700px;">Nos réflexes financiers viennent souvent de croyances installées avant qu'on ait choisi quoi que ce soit — l'enfance, la famille, ce qu'on a vu manquer. Aucun de ces profils n'est meilleur : chacun a sa force et son angle mort.</p>
+      <div id="pdPhrases" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="pdScripts"></div>
+    </div>
+
+    <!-- ② Ce qui compte pour moi -->
+    <div class="card" id="sec-valeurs" style="scroll-margin-top:20px;display:flex;flex-direction:column;gap:18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-teal);">② CE QUI COMPTE POUR MOI</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(34,180,196,.3),transparent);"></div>
+      </div>
+      <p style="margin:0;color:var(--ink2);font-size:14.5px;line-height:1.55;max-width:700px;">L'argent n'est un but pour personne — c'est un moyen. Encore faut-il savoir vers quoi. Choisis les <b>trois</b> qui comptent le plus pour toi, <b>dans l'ordre</b> : la première départage quand il faut arbitrer, et c'est elle que tu retrouveras dans ⑤.</p>
+      <div id="pdValeurs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px;"></div>
+      <div id="pdValeursSynth"></div>
+    </div>
+
+    <!-- ③ Des repères, pas des règles -->
+    <div class="card" id="sec-reperes" style="scroll-margin-top:20px;display:flex;flex-direction:column;gap:18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-amber);">③ DES REPÈRES, PAS DES RÈGLES</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(199,127,19,.3),transparent);"></div>
+      </div>
+      <p style="margin:0;color:var(--ink2);font-size:14.5px;line-height:1.55;">Vingt-deux idées sur l'argent, à prendre ou à ignorer. Chacune a un bénéfice <b>et</b> un coût — aucune n'est gratuite. Garde celles qui te parlent, dans l'ordre qui te parle, et ajoute les tiennes. Sept est un bon repère — au-delà, une liste se retient rarement — mais rien ne t'empêche d'en garder plus. Pour les découvrir une par une, il y a « Le mur ».</p>
+      <div id="pdReperes" style="display:flex;flex-direction:column;gap:14px;"></div>
+    </div>
+
+    <!-- ③bis Mes défis — relevés sur Le mur -->
+    <div class="card" id="sec-defis" style="scroll-margin-top:20px;display:flex;flex-direction:column;gap:18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-amber);">MES DÉFIS</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(199,127,19,.3),transparent);"></div>
+      </div>
+      <p style="margin:0;color:var(--ink2);font-size:14.5px;line-height:1.55;">Les petites actions que tu as relevées depuis <b>Le mur</b>. Coche quand c'est fait, note ce que tu en as tiré — et archive : rien ne disparaît, tout se relit.</p>
+      <div id="pdDefis" style="display:flex;flex-direction:column;gap:14px;"></div>
+    </div>
+
+    <!-- ④ Quel investisseur je suis -->
+    <div class="card" id="sec-profil" style="scroll-margin-top:20px;display:flex;flex-direction:column;gap:18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <span class="mono" style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--acc-green);">④ QUEL INVESTISSEUR JE SUIS</span>
+        <div style="flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(14,127,99,.3),transparent);"></div>
+      </div>
+      <p style="margin:0;color:var(--ink2);font-size:14.5px;line-height:1.55;max-width:700px;">Différent de ton tempérament : là il s'agit du <b>risque que tu peux encaisser</b>, pas de ce que tu ressens. La base de la pyramide — ta sécurité — est la même pour tout le monde ; ce qui change, c'est le poids des étages du haut. C'est le seul bloc qui a un effet ailleurs : il fixe les cibles de <b>Mon épargne</b>.</p>
+      <div id="pdProfil"></div>
+    </div>
+
+    <!-- ⑤ Ce que mon argent fait vraiment -->
+    <div id="sec-reel" style="scroll-margin-top:20px;"></div>
+
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;padding:15px 20px;border-radius:18px;background:var(--soft);font-size:13.5px;color:var(--ink2);">
+      <span class="ic" aria-hidden="true" style="font-size:19px;">cloud_off</span>
+      <span>Ces données vivent dans ton navigateur — elles y restent, et elles ne suivent pas si tu changes d'appareil.</span>
+      <a class="bande-lien" href="../donnees/index.html" style="display:inline-flex;align-items:center;gap:6px;font-weight:600;text-decoration:none;"><span class="ic" style="font-size:17px;">download</span>Exporter</a>
+    </div>
+  </section>
+
+  <section id="pane-placer" style="display:none;flex-direction:column;max-width:1120px;margin:0 auto;padding:38px 40px 90px;">
+    <div style="display:flex;align-items:center;gap:15px;margin-bottom:8px;"><span style="width:54px;height:54px;flex:none;border-radius:18px;background:linear-gradient(135deg,#34D399,#22B4C4);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 17px 32px -16px rgba(34,180,180,.85);"><span class="ic" style="font-size:29px;">account_balance</span></span><div><h2>Où placer mon épargne</h2><p style="margin:5px 0 0;color:var(--ink2);font-size:15px;">Des livrets sans risque aux enveloppes fiscales — chaque étage de la pyramide a ses supports.</p></div></div>
+      <div class="section-head" style="--g1:#34D399; --g2:#22B4C4; margin-top:46px;">
+        <span class="material-symbols-rounded" aria-hidden="true">account_balance</span>
+        <div><h2>Livrets réglementés</h2><div class="sub">Sans risque, disponibles, garantis par l'État — taux au 1er août 2026</div></div>
+      </div>
+      <p class="placement-intro">Parfaits pour la base de la pyramide (ta sécurité) et les projets à court terme : le capital est garanti et l'argent reste disponible. Le réflexe malin : remplir d'abord les mieux rémunérés et non imposables.</p>
+      <div class="fiches">
+        <div class="fiche" style="--g1:#34D399; --g2:#22B4C4;">
+          <div class="haut"><h4>Livret A</h4><div class="taux">1,70 %<small> /an</small></div></div>
+          <div class="corps">
+            <div class="ligne"><span class="k">Plafond</span><span class="v">22 950 €</span></div>
+            <span class="fisc net">Net d'impôt</span>
+            <p class="desc">Le socle, ouvert à tous. Idéal pour l'épargne de précaution.</p>
+            <a class="lien" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F2365" target="_blank" rel="noopener">Fiche officielle <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span></a>
+          </div>
+        </div>
+        <div class="fiche" style="--g1:#A78BE8; --g2:#8CC7F0;">
+          <div class="haut"><h4>LDDS</h4><div class="taux">1,70 %<small> /an</small></div></div>
+          <div class="corps">
+            <div class="ligne"><span class="k">Plafond</span><span class="v">12 000 €</span></div>
+            <span class="fisc net">Net d'impôt</span>
+            <p class="desc">Le complément du Livret A, une fois celui-ci plein.</p>
+            <a class="lien" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F2368" target="_blank" rel="noopener">Fiche officielle <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span></a>
+          </div>
+        </div>
+        <div class="fiche" style="--g1:#FF7A45; --g2:#EC4899;">
+          <div class="haut"><h4>LEP</h4><div class="taux">2,50 %<small> /an</small></div></div>
+          <div class="corps">
+            <div class="ligne"><span class="k">Plafond</span><span class="v">10 000 €</span></div>
+            <span class="fisc net">Net d'impôt</span>
+            <p class="desc">Le mieux rémunéré — sous conditions de revenus. À privilégier si tu y as droit.</p>
+            <a class="lien" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F2367" target="_blank" rel="noopener">Fiche officielle <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span></a>
+          </div>
+        </div>
+        <div class="fiche" style="--g1:#F472B6; --g2:#A855F7;">
+          <div class="haut"><h4>Livret Jeune</h4><div class="taux">≥ 1,70 %<small> /an</small></div></div>
+          <div class="corps">
+            <div class="ligne"><span class="k">Plafond</span><span class="v">1 600 €</span></div>
+            <span class="fisc net">Net d'impôt</span>
+            <p class="desc">Pour les 12–25 ans. Taux au moins égal à celui du Livret A.</p>
+            <a class="lien" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F2904" target="_blank" rel="noopener">Fiche officielle <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span></a>
+          </div>
+        </div>
+        <div class="fiche" style="--g1:#FBBF24; --g2:#FF7A45;">
+          <div class="haut"><h4>PEL</h4><div class="taux">2,00 %<small> brut · nouveaux plans</small></div></div>
+          <div class="corps">
+            <div class="ligne"><span class="k">Plafond</span><span class="v">61 200 €</span></div>
+            <span class="fisc impo">Imposable · PFU 30 %</span>
+            <p class="desc">Épargne bloquée orientée logement. Rendement net plus faible une fois l'impôt déduit.</p>
+            <a class="lien" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F16140" target="_blank" rel="noopener">Fiche officielle <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span></a>
+          </div>
+        </div>
+        <div class="fiche" style="--g1:#38BDF8; --g2:#8CC7F0;">
+          <div class="haut"><h4>CEL</h4><div class="taux">1,25 %<small> brut</small></div></div>
+          <div class="corps">
+            <div class="ligne"><span class="k">Plafond</span><span class="v">15 300 €</span></div>
+            <span class="fisc impo">Imposable · PFU 30 %</span>
+            <p class="desc">Épargne logement plus souple que le PEL — versements et retraits libres.</p>
+            <a class="lien" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F33923" target="_blank" rel="noopener">Fiche officielle <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head" style="--g1:#A78BE8; --g2:#8CC7F0; margin-top:46px;">
+        <span class="material-symbols-rounded" aria-hidden="true">savings</span>
+        <div><h2>Enveloppes fiscales</h2><div class="sub">Pour investir sur la durée avec une fiscalité allégée — capital non garanti</div></div>
+      </div>
+      <p class="placement-intro">Une enveloppe fiscale n'est pas un livret : ce n'est pas un placement en soi, mais un « contenant » qui abrite des investissements (actions, fonds…) en échange d'un avantage fiscal si tu gardes ton épargne longtemps. Le revers : le capital peut baisser. Elles servent les étages hauts de la pyramide (long terme).</p>
+      <div class="fiches">
+        <div class="fiche" style="--g1:#34D399; --g2:#22B4C4;">
+          <div class="haut"><h4>PEA</h4><div class="taux">0 % d'impôt<small> sur les gains après 5 ans*</small></div></div>
+          <div class="corps">
+            <div class="ligne"><span class="k">Plafond</span><span class="v">150 000 €</span></div>
+            <div class="ligne"><span class="k">Support</span><span class="v">Actions européennes</span></div>
+            <p class="desc">*Gains exonérés d'impôt sur le revenu après 5 ans, hors prélèvements sociaux (17,2 %).</p>
+            <a class="lien" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F2385" target="_blank" rel="noopener">Fiche officielle <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span></a>
+          </div>
+        </div>
+        <div class="fiche" style="--g1:#A78BE8; --g2:#8CC7F0;">
+          <div class="haut"><h4>PEA-PME</h4><div class="taux">PME &amp; ETI<small> même régime que le PEA</small></div></div>
+          <div class="corps">
+            <div class="ligne"><span class="k">Plafond</span><span class="v">225 000 €*</span></div>
+            <div class="ligne"><span class="k">Cible</span><span class="v">Petites entreprises</span></div>
+            <p class="desc">*Plafond commun avec le PEA. Pour orienter son épargne vers les PME et ETI.</p>
+            <a class="lien" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F2385" target="_blank" rel="noopener">Fiche officielle <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span></a>
+          </div>
+        </div>
+        <div class="fiche" style="--g1:#FF7A45; --g2:#EC4899;">
+          <div class="haut"><h4>Assurance-vie</h4><div class="taux">Le couteau suisse<small> souple, sans plafond</small></div></div>
+          <div class="corps">
+            <div class="ligne"><span class="k">Horizon</span><span class="v">8 ans et +</span></div>
+            <div class="ligne"><span class="k">Sécurité</span><span class="v">Fonds € ou UC</span></div>
+            <p class="desc">Fiscalité allégée après 8 ans (abattement 4 600 € / 9 200 € à deux) et fort atout pour la transmission.</p>
+            <a class="lien" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F15274" target="_blank" rel="noopener">Fiche officielle <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span></a>
+          </div>
+        </div>
+        <div class="fiche" style="--g1:#F472B6; --g2:#A855F7;">
+          <div class="haut"><h4>PER</h4><div class="taux">Cap retraite<small> versements déductibles</small></div></div>
+          <div class="corps">
+            <div class="ligne"><span class="k">Atout</span><span class="v">Baisse ton impôt</span></div>
+            <div class="ligne"><span class="k">Sortie</span><span class="v">Capital ou rente</span></div>
+            <p class="desc">Tu déduis les versements de ton revenu imposable ; l'épargne est bloquée jusqu'à la retraite, fiscalisée à la sortie.</p>
+            <a class="lien" href="https://www.service-public.gouv.fr/particuliers/vosdroits/F36526" target="_blank" rel="noopener">Fiche officielle <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span></a>
+          </div>
+        </div>
+      </div>
+      <p class="placement-note">Chiffres au 1er août 2026, à vérifier sur les sites officiels (<a href="https://www.service-public.gouv.fr" target="_blank" rel="noopener">service-public.gouv.fr</a>). Les livrets réglementés sont sans risque et garantis ; les enveloppes fiscales comportent un risque de perte en capital. Pédagogie générale, pas du conseil financier.</p>
+  </section>
+  <section id="pane-pratique" style="display:none;max-width:1120px;margin:0 auto;padding:38px 40px 90px;flex-direction:column;gap:26px;">
+    <div style="display:flex;align-items:center;gap:15px;">
+      <span style="width:54px;height:54px;flex:none;border-radius:18px;background:linear-gradient(135deg,#FBBF24,#FF7A45);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 17px 32px -16px rgba(255,140,60,.85);"><span class="ic" style="font-size:29px;">calculate</span></span>
+      <div>
+        <h2>Calculateurs</h2>
+        <p style="margin:5px 0 0;color:var(--ink2);font-size:15px;">Deux outils pour poser tes chiffres : une <b>calculatrice financière</b> et des <b>calculateurs de taux</b> (intérêts, mensualités, objectifs). Tout reste dans ton navigateur.</p>
+      </div>
+    </div>
+    <div id="pratNav" style="display:flex;justify-content:center;"></div>
+    <div id="pratTool" style="display: flex; flex-direction: column; gap: 22px; position: relative"><svg width="413" height="69" viewBox="0 0 413 69" preserveAspectRatio="none" style="position: absolute; left: 7px; top: 292px; width: 413px; height: 69px; overflow: visible; fill: none; stroke: #8a8378; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M3 34 L5 34 L9 35 L11 36 L14 37 L18 38 L22 39 L26 40 L31 40 L34 42 L38 43 L42 44 L44 46 L46 46 L49 48 L50 50 L54 52 L58 54 L60 54 L64 56 L66 57 L68 58 L73 58 L77 58 L86 58 L90 58 L97 59 L107 60 L114 62 L121 62 L128 65 L133 66 L137 68 L142 68 L144 68 L165 63 L181 62 L208 60 L226 60 L243 62 L254 63 L259 64 L266 66 L270 67 L276 68 L278 69 L280 69 L282 69 L285 69 L288 69 L290 69 L292 69 L294 69 L296 69 L298 69 L302 69 L305 68 L314 66 L318 66 L326 65 L336 63 L338 62 L343 62 L350 61 L353 61 L358 61 L364 60 L367 60 L374 59 L379 58 L382 58 L388 56 L390 54 L395 52 L398 51 L400 49 L405 47 L408 46 L410 44 L411 42 L412 39 L413 37 L413 35 L412 33 L411 31 L408 28 L406 26 L402 24 L402 22 L398 20 L394 17 L391 14 L389 13 L386 11 L384 10 L382 9 L377 6 L375 5 L372 5 L368 3 L365 2 L362 2 L360 2 L358 1 L354 0 L350 0 L345 0 L339 0 L334 1 L326 1 L321 1 L314 1 L310 1 L306 1 L302 1 L294 1 L290 1 L284 1 L280 1 L274 2 L270 2 L266 2 L258 4 L254 4 L249 6 L238 7 L233 8 L226 9 L215 10 L210 11 L199 11 L194 11 L191 11 L186 11 L182 11 L175 12 L172 13 L168 14 L162 14 L158 15 L151 17 L147 18 L142 18 L135 18 L131 18 L124 18 L121 16 L115 15 L110 14 L106 14 L104 12 L101 12 L98 12 L97 10 L94 10 L90 10 L88 10 L86 10 L82 10 L79 10 L71 10 L68 10 L61 10 L58 10 L54 10 L48 11 L43 12 L39 12 L33 12 L30 12 L26 13 L23 13 L20 13 L17 14 L14 14 L11 15 L9 15 L7 17 L5 17 L3 18 L1 19 L0 21"></path></svg></div>
+  </section>
+
+  <footer style="text-align:center;color:var(--ink2);font-size:14px;padding:0 40px 46px;">Cosmos — fait avec ❤ par Rosalyna · <a class="pied-lien" href="../donnees/index.html">Mes données</a></footer>
+</div>
+  <button class="theme-toggle" id="themeToggle" type="button">
+    <span class="material-symbols-rounded" id="themeIcon" aria-hidden="true">dark_mode</span>
+    <span id="themeLabel">Mode nuit</span>
+  </button>
+  <script src="../commun/js/point-depart-contenu.js"></script>
+  <script src="../commun/js/reperes-contenu.js"></script>
+  <script src="../commun/js/signatures-contenu.js"></script>
+  <script src="../commun/js/point-depart-etat.js"></script>
+  <script src="../commun/js/finances.js"></script>
+  <script src="../commun/js/point-depart.js"></script>
+  <script src="../commun/js/theme.js"></script>
+  <script src="../commun/js/projects.js"></script>
+  <script src="../commun/js/nav.js"></script>
+</body>
+</html>

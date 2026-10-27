@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DrawDB — Cosmos</title>
+  <link rel="icon" type="image/svg+xml" href="../../commun/img/favicon.svg">
+  <link rel="stylesheet" href="../../commun/css/style.css">
+</head>
+<body class="p-ia" data-nav="Outils IA">
+
+  <nav class="nav">
+    <a class="brand" href="../../index.html">
+      <span class="brand-logo">
+        <img class="logo-day" src="../../commun/img/logo-day.svg" alt="">
+        <img class="logo-night" src="../../commun/img/logo-night.svg" alt="">
+      </span>
+      <span class="brand-name">Cosmos</span>
+    </a>
+    <div class="nav-pills"></div>
+    <div class="avatar">AB</div>
+  </nav>
+
+  <main class="page">
+    <section class="hero">
+      <h1>DrawDB</h1>
+      <p class="lead">Dessine tes schémas de bases de données à la souris, et laisse l'outil générer le SQL.</p>
+    </section>
+
+    <section class="panneau" style="max-width:760px; margin:0 auto;">
+      <p style="margin-bottom:14px;">DrawDB est un éditeur de diagrammes entité-relation <strong>open source et gratuit</strong> qui tourne entièrement dans le navigateur : tables, relations, cardinalités, puis export du script SQL (PostgreSQL, MySQL, SQLite…). Aucun compte requis, tes diagrammes restent stockés localement.</p>
+      <p style="margin-bottom:14px; color:var(--ink2);">Je m'en sers pour concevoir les schémas des bases de Cosmos (budget, dashboard) avant de les créer — et toi, tu peux l'utiliser pour n'importe quel projet.</p>
+      <p style="margin-bottom:22px; color:var(--ink2); font-size:13.5px;">Astuce : commence par tes tables principales, ajoute les relations en glissant d'une clé à l'autre, puis Export → SQL. Le fichier généré se lit très bien pour apprendre.</p>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
+        <a class="bouton" href="https://drawdb.app" target="_blank" rel="noopener">Ouvrir DrawDB ↗</a>
+        <a href="https://github.com/drawdb-io/drawdb" target="_blank" rel="noopener" style="color:var(--ink2); font-size:14px;">Code source (AGPL-3.0)</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied">Cosmos — fait avec ❤️ par Rosalyna</footer>
+  <button class="theme-toggle" id="themeToggle" type="button">
+    <span class="material-symbols-rounded" id="themeIcon" aria-hidden="true">dark_mode</span>
+    <span id="themeLabel">Mode nuit</span>
+  </button>
+  <script src="../../commun/js/theme.js"></script>
+  <script src="../../commun/js/projects.js"></script>
+  <script src="../../commun/js/nav.js"></script>
+</body>
+</html>

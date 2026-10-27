@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transcription — Cosmos</title>
+  <link rel="icon" type="image/svg+xml" href="../../commun/img/favicon.svg">
+  <link rel="stylesheet" href="../../commun/css/style.css">
+</head>
+<body class="p-ia" data-nav="Outils IA">
+
+  <nav class="nav">
+    <a class="brand" href="../../index.html">
+      <span class="brand-logo">
+        <img class="logo-day" src="../../commun/img/logo-day.svg" alt="">
+        <img class="logo-night" src="../../commun/img/logo-night.svg" alt="">
+      </span>
+      <span class="brand-name">Cosmos</span>
+    </a>
+    <div class="nav-pills"></div>
+    <div class="avatar">AB</div>
+  </nav>
+
+  <main class="page">
+    <section class="hero">
+      <h1>Transcription</h1>
+      <p class="lead">Dépose un fichier audio (mp3, wav, m4a…) et récupère le texte. Tout se passe dans ton navigateur : l'audio n'est envoyé nulle part.</p>
+    </section>
+
+    <section class="panneau" style="max-width:760px; margin:0 auto;">
+      <div id="avertissement" style="display:none; background:#FFE5C2; color:#B26A00; border-radius:14px; padding:12px 16px; margin-bottom:20px; font-size:14px;">
+        ⚠️ Cette page fonctionne mieux servie par un serveur (en ligne, ou en local avec
+        <code>python -m http.server</code>) qu'ouverte directement en double-cliquant sur le fichier.
+      </div>
+
+      <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:20px;">
+        <label class="bouton" for="fichier">📂 Choisir un fichier audio</label>
+        <input type="file" id="fichier" accept="audio/*,video/mp4,video/webm" style="display:none;">
+        <label>Langue :
+          <select id="langue" class="champ">
+            <option value="french" selected>Français</option>
+            <option value="english">Anglais</option>
+            <option value="">Détection auto</option>
+          </select>
+        </label>
+      </div>
+
+      <p class="statut" id="statut">Le modèle (Whisper tiny, ≈ 40 Mo) se télécharge au premier usage, puis reste en cache.</p>
+
+      <textarea class="champ" id="resultat" placeholder="Le texte transcrit apparaîtra ici…" style="margin-top:16px;"></textarea>
+
+      <div style="margin-top:16px;">
+        <button class="bouton" id="copier" type="button">Copier le texte</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied">Cosmos — fait avec ❤️ par Rosalyna</footer>
+  <button class="theme-toggle" id="themeToggle" type="button">
+    <span class="material-symbols-rounded" id="themeIcon" aria-hidden="true">dark_mode</span>
+    <span id="themeLabel">Mode nuit</span>
+  </button>
+  <script src="../../commun/js/theme.js"></script>
+
+  <script type="module">
+    import { pipeline } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/transformers.min.js";
+
+    const $ = (id) => document.getElementById(id);
+
+    if (location.protocol === "file:") {
+      $("avertissement").style.display = "block";
+    }
+
+    let transcripteur = null;
+
+    async function chargerModele() {
+      if (transcripteur) return transcripteur;
+      transcripteur = await pipeline("automatic-speech-recognition", "Xenova/whisper-tiny", {
+        dtype: "q8",
+        progress_callback: (p) => {
+          if (p.status === "progress" && p.total) {
+            $("statut").textContent = `Téléchargement du modèle : ${Math.round((p.loaded / p.total) * 100)} %`;
+          }
+        },
+      });
+      return transcripteur;
+    }
+
+    async function decoderAudio(fichier) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+      const tampon = await ctx.decodeAudioData(await fichier.arrayBuffer());
+      let donnees;
+      if (tampon.numberOfChannels > 1) {
+        const g = tampon.getChannelData(0), d = tampon.getChannelData(1);
+        donnees = new Float32Array(g.length);
+        for (let i = 0; i < g.length; i++) donnees[i] = (g[i] + d[i]) / 2;
+      } else {
+        donnees = tampon.getChannelData(0);
+      }
+      ctx.close();
+      return donnees;
+    }
+
+    $("fichier").addEventListener("change", async (e) => {
+      const fichier = e.target.files[0];
+      if (!fichier) return;
+      $("resultat").value = "";
+      try {
+        $("statut").textContent = "Chargement du modèle…";
+        const t = await chargerModele();
+        $("statut").textContent = "Lecture de l'audio…";
+        const audio = await decoderAudio(fichier);
+        $("statut").textContent = "Transcription en cours… (selon la durée de l'audio, ça peut prendre un moment)";
+        const options = { chunk_length_s: 30, stride_length_s: 5 };
+        const langue = $("langue").value;
+        if (langue) { options.language = langue; options.task = "transcribe"; }
+        const sortie = await t(audio, options);
+        $("resultat").value = sortie.text.trim();
+        $("statut").textContent = "Terminé ✓";
+      } catch (err) {
+        console.error(err);
+        $("statut").textContent = "Erreur : " + err.message;
+      } finally {
+        e.target.value = "";
+      }
+    });
+
+    $("copier").addEventListener("click", async () => {
+      await navigator.clipboard.writeText($("resultat").value);
+      $("copier").textContent = "Copié ✓";
+      setTimeout(() => ($("copier").textContent = "Copier le texte"), 1500);
+    });
+  </script>
+  <script src="../../commun/js/projects.js"></script>
+  <script src="../../commun/js/nav.js"></script>
+</body>
+</html>
