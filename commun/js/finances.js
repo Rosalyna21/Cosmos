@@ -106,7 +106,20 @@
         { d:'2027-01', label:'Prime annuelle', a:1500, type:'depot' },
         { d:'2028-06', label:'Travaux', a:3000, type:'retrait' }
       ],
-      scenarios:[ { tx:1.5, on:true }, { tx:3, on:true }, { tx:5, on:true } ]
+      scenarios:[ { tx:1.5, on:true }, { tx:3, on:true }, { tx:5, on:true } ],
+      /* Simulateur d'épargne multi-comptes : plusieurs comptes, chacun son taux ; les mouvements visent un compte */
+      epargneMulti:{
+        an:10,
+        comptes:[
+          { nom:'Livret A',            tx:1.7, cap:3000, vers:100 },
+          { nom:'Assurance-vie (fonds €)', tx:2.5, cap:5000, vers:150 },
+          { nom:'Actions (PEA)',       tx:7,   cap:2000, vers:50 }
+        ],
+        mouvements:[
+          { d:'2027-06', label:'Prime',           a:2000, type:'depot',   c:0 },
+          { d:'2029-01', label:'Apport logement', a:6000, type:'retrait', c:1 }
+        ]
+      }
     };
     const eur = (n) => Math.round(n).toLocaleString('fr-FR') + ' €';
     const $ = (id) => document.getElementById(id);
@@ -222,24 +235,34 @@
       if (ai) ai.addEventListener('input', () => { st.age = parseInt(ai.value, 10) || 0; keepFocus(renderProfil); });
     };
 
+    // Menu « Outils » (colonne de gauche) : la calculatrice + les trois simulateurs,
+    // chacun affiché seul à droite.
     const PRAT = [
-      { k:'calc',     n:'Calculatrice financière', ic:'calculate' },
-      { k:'taux',     n:'Calculateurs de taux', ic:'percent' }
+      { k:'calc',     n:'Calculatrice',       ic:'calculate' },
+      { k:'interets', n:'Intérêts composés',  ic:'trending_up' },
+      { k:'pret',     n:'Mensualité de prêt', ic:'account_balance' },
+      { k:'objectif', n:'Objectif d\'épargne', ic:'flag' },
+      { k:'epargne-multi', n:'Épargne multi-comptes', ic:'account_balance_wallet' }
     ];
 
     const renderPratique = () => {
       const nav = $('pratNav');
+      // une valeur persistée d'avant le découpage (ex. 'taux') retombe sur la calculatrice
+      if (PRAT.every(p => p.k !== st.pratTool)) st.pratTool = 'calc';
       if (nav) {
-        nav.innerHTML = '<div style="display:inline-flex;gap:3px;background:var(--soft);border-radius:999px;padding:5px;flex-wrap:wrap;justify-content:center;">' +
-          PRAT.map(p => '<button class="seg" data-prat="' + p.k + '" style="min-height:44px;display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:999px;font-weight:600;font-size:14px;' +
-            (st.pratTool === p.k ? 'background:linear-gradient(135deg,#FBBF24,#FF7A45);color:#fff;' : 'background:transparent;color:var(--ink2);') +
-            '"><span class="ic" style="font-size:18px;">' + p.ic + '</span>' + p.n + '</button>').join('') + '</div>';
+        nav.innerHTML = PRAT.map(p => {
+          const on = st.pratTool === p.k;
+          return '<button class="seg" data-prat="' + p.k + '" aria-pressed="' + (on ? 'true' : 'false') + '" style="width:100%;min-height:48px;display:flex;align-items:center;gap:11px;padding:12px 16px;border-radius:14px;font-weight:600;font-size:14.5px;text-align:left;' +
+            (on ? 'background:linear-gradient(135deg,#FBBF24,#FF7A45);color:#fff;box-shadow:0 12px 24px -14px rgba(255,140,60,.75);' : 'background:var(--soft);color:var(--ink2);') +
+            '"><span class="ic" style="font-size:20px;flex:none;">' + p.ic + '</span>' + p.n + '</button>';
+        }).join('');
         nav.querySelectorAll('[data-prat]').forEach(b => b.addEventListener('click', () => {
           st.pratTool = b.getAttribute('data-prat'); renderPratique();
         }));
       }
-      if (st.pratTool === 'taux') renderTaux();
-      else { st.pratTool = 'calc'; renderCalc(); }
+      if (st.pratTool === 'calc') renderCalc();
+      else if (st.pratTool === 'epargne-multi') renderEpargneMulti();
+      else renderTaux();
     };
 
     // ── calculatrice financière ──
@@ -251,12 +274,14 @@
         ['4','5','6','×','÷'],
         ['1','2','3','+','−'],
         ['0','.','(',')','='],
-        ['xʸ','ⁿ√x','√','ln','%']
+        ['xʸ','ⁿ√x','√','ln','%'],
+        ['MC','MR','M+','M−','MS']
       ];
       box.innerHTML =
         '<div class="card" style="display:flex;flex-direction:column;gap:18px;max-width:520px;margin:0 auto;width:100%;">' +
           '<p style="margin:0;font-size:14px;color:var(--ink2);line-height:1.55;">Scientifique, avec la <b>racine n-ième</b> (<span class="mono">ⁿ√x</span>) — l\'outil des taux annualisés, pas seulement la racine carrée.</p>' +
-          '<div style="padding:18px 20px;border-radius:18px;background:var(--soft);text-align:right;">' +
+          '<div style="position:relative;padding:18px 20px;border-radius:18px;background:var(--soft);text-align:right;">' +
+            '<span id="calcMem" class="mono" style="position:absolute;left:16px;top:14px;font-size:12px;font-weight:700;color:var(--acc-violet);visibility:hidden;" title="une valeur est en mémoire">M</span>' +
             '<div id="calcExpr" class="mono" style="font-size:13px;color:var(--ink2);min-height:18px;word-break:break-all;"></div>' +
             '<div id="calcOut" class="num" style="font-size:34px;margin-top:4px;word-break:break-all;">0</div>' +
           '</div>' +
@@ -264,25 +289,31 @@
             KEYS.flat().map(k => {
               const isOp = ['×','÷','+','−','='].indexOf(k) > -1;
               const isFn = ['xʸ','ⁿ√x','√','ln','%','⌫','C','(',')'].indexOf(k) > -1;
+              const isMem = ['MC','MR','M+','M−','MS'].indexOf(k) > -1;
               return '<button class="seg" data-k="' + k + '" style="min-height:52px;border-radius:14px;font-size:16px;font-weight:600;' +
                 (k === '=' ? 'background:linear-gradient(135deg,#FBBF24,#FF7A45);color:#fff;'
                   : isOp ? 'background:var(--soft);color:var(--acc-amber);'
+                  : isMem ? 'background:var(--soft);color:var(--acc-violet);font-size:14px;'
                   : isFn ? 'background:var(--soft);color:var(--ink2);font-size:14px;'
                   : 'background:var(--surface);color:var(--ink);box-shadow:0 8px 18px -12px rgba(90,60,120,.5);') + '">' + k + '</button>';
             }).join('') +
           '</div>' +
           '<div style="font-size:12.5px;color:var(--ink2);"><b class="mono">ⁿ√x</b> : tape la valeur, puis <span class="mono">ⁿ√x</span>, puis l\'indice. Ex. <span class="mono">1,45 ⁿ√x 5 =</span> donne le coefficient annuel d\'un capital multiplié par 1,45 en 5 ans : <b class="mono">1,077</b>, soit <b>+7,7 % par an</b>.</div>' +
+          '<div style="font-size:12.5px;color:var(--ink2);"><b class="mono">MS</b> enregistre le résultat affiché, <b class="mono">MR</b> le réinsère, <b class="mono">M+</b> / <b class="mono">M−</b> l\'ajoutent ou le retranchent, <b class="mono">MC</b> efface la mémoire. Un <b class="mono" style="color:var(--acc-violet);">M</b> s\'allume dans l\'écran tant qu\'une valeur est gardée.</div>' +
         '</div>';
 
       let expr = '';
-      const out = $('calcOut'), ex = $('calcExpr');
+      let mem = null;   // valeur en mémoire (null = vide)
+      let last = 0;     // dernier résultat calculé, pour MS / M+ / M−
+      const out = $('calcOut'), ex = $('calcExpr'), memBadge = $('calcMem');
+      const refreshMem = () => { if (memBadge) memBadge.style.visibility = (mem === null ? 'hidden' : 'visible'); };
       const show = () => {
         ex.textContent = expr || '';
         try {
           const js = expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/,/g,'.');
           if (/^[0-9+\-*/(). ]*(Math\.(pow|sqrt|log)\([^)]*\))?[0-9+\-*/(). ]*$/.test(js) || /Math\./.test(js)) {
             const r = Function('"use strict";return (' + (js || '0') + ')')();
-            if (isFinite(r)) out.textContent = (Math.round(r * 1e6) / 1e6).toLocaleString('fr-FR');
+            if (isFinite(r)) { last = r; out.textContent = (Math.round(r * 1e6) / 1e6).toLocaleString('fr-FR'); }
           }
         } catch (e) {}
       };
@@ -291,6 +322,11 @@
         if (k === 'C') { expr = ''; out.textContent = '0'; ex.textContent = ''; return; }
         if (k === '⌫') { expr = expr.slice(0, -1); show(); return; }
         if (k === '=') { show(); expr = out.textContent.replace(/\s/g,'').replace(',','.'); return; }
+        if (k === 'MS') { mem = last; refreshMem(); return; }        // enregistre le résultat affiché
+        if (k === 'MC') { mem = null; refreshMem(); return; }        // efface la mémoire
+        if (k === 'MR') { if (mem !== null) { expr += String(mem); show(); } return; } // rappelle la valeur
+        if (k === 'M+') { mem = (mem || 0) + last; refreshMem(); return; }
+        if (k === 'M−') { mem = (mem || 0) - last; refreshMem(); return; }
         if (k === '√') expr += 'Math.sqrt(';
         else if (k === 'ln') expr += 'Math.log(';
         else if (k === 'xʸ') expr += '**';
@@ -323,19 +359,26 @@
       }).join('') +
     '</div>';
 
-    // graphique d'évolution
-    const graphHTML = (series, f) => {
+    // graphique d'évolution — réutilisé par Intérêts composés et Épargne multi-comptes.
+    // o : { marks, showVerse, labelOf, verseFrom } ; les défauts reproduisent le comportement d'origine.
+    const graphHTML = (series, f, o) => {
       if (!series.length) return '';
+      o = o || {};
+      const srcMarks = o.marks || st.mouvements;
+      const showVerse = o.showVerse !== false;
+      const labelOf = o.labelOf || (s => s.tx + ' %');
+      const versePts = o.verseFrom || series[0].pts;
+      const colOf = (s, i) => s.col || SCOL[i % 4];
       const W = 620, H = 190, PL = 52, PB = 24, PT = 12;
       const N = Math.max(1, Math.round(f.an * 12));
       const maxV = Math.max.apply(null, series.map(s => Math.max.apply(null, s.pts.map(p => p.v))).concat([1]));
       const x = (m) => PL + (m / N) * (W - PL - 12);
       const y = (v) => H - PB - (v / maxV) * (H - PB - PT);
-      const verseLine = series[0].pts.map(p => x(p.m).toFixed(1) + ',' + y(p.verse).toFixed(1)).join(' ');
+      const verseLine = versePts.map(p => x(p.m).toFixed(1) + ',' + y(p.verse).toFixed(1)).join(' ');
       const lines = series.map((s,i) =>
-        '<polyline fill="none" stroke="' + SCOL[i % 4] + '" stroke-width="2.5" stroke-linejoin="round" points="' +
+        '<polyline fill="none" stroke="' + colOf(s,i) + '" stroke-width="' + (s.w || 2.5) + '" stroke-linejoin="round" points="' +
         s.pts.map(p => x(p.m).toFixed(1) + ',' + y(p.v).toFixed(1)).join(' ') + '"/>').join('');
-      const marks = st.mouvements.map(mv => {
+      const marksSvg = srcMarks.map(mv => {
         const [yy,mm] = mv.d.split('-').map(Number);
         const idx = (yy - 2026) * 12 + (mm - 1) - 7;
         if (idx < 0 || idx > N) return '';
@@ -348,16 +391,88 @@
       }).join('');
       const gx = [0, Math.round(N/2), N].map(m =>
         '<text x="' + x(m).toFixed(1) + '" y="' + (H-7) + '" text-anchor="middle" font-family="Space Mono, monospace" font-size="9.5" fill="currentColor" opacity=".55">' + (m === 0 ? 'auj.' : Math.round(m/12) + ' an' + (m/12 >= 2 ? 's' : '')) + '</text>').join('');
-      return '<div style="width:100%;padding:14px 12px;border-radius:18px;background:var(--soft);">' +
-        '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:190px;color:var(--ink);" role="img" aria-label="Évolution du capital">' +
-          gy + marks +
-          '<polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 4" opacity=".4" points="' + verseLine + '"/>' +
+      return '<div id="icGraphWrap" style="position:relative;width:100%;padding:14px 12px;border-radius:18px;background:var(--soft);">' +
+        '<svg id="icGraph" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:190px;color:var(--ink);" role="img" aria-label="Évolution du capital">' +
+          gy + marksSvg +
+          (showVerse ? '<polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 4" opacity=".4" points="' + verseLine + '"/>' : '') +
           lines + gx +
+          '<line id="icCross" x1="0" y1="' + PT + '" x2="0" y2="' + (H - PB) + '" stroke="currentColor" stroke-width="1" opacity="0" style="pointer-events:none;"/>' +
+          series.map((s,i) => '<circle class="icDot" data-s="' + i + '" r="3.8" fill="' + colOf(s,i) + '" stroke="var(--surface)" stroke-width="1.5" opacity="0" style="pointer-events:none;"/>').join('') +
+          '<rect id="icHit" x="' + PL + '" y="' + PT + '" width="' + (W - PL - 12) + '" height="' + (H - PB - PT) + '" fill="transparent" style="pointer-events:all;cursor:crosshair;"/>' +
         '</svg>' +
-        '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);padding:0 4px;">' +
-          series.map((s,i) => '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:3px;border-radius:2px;background:' + SCOL[i % 4] + ';"></span>' + s.tx + ' %</span>').join('') +
-          '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:0;border-top:2px dashed currentColor;opacity:.5;"></span>versé, sans intérêts</span>' +
+        '<div id="icTip" style="position:absolute;top:10px;pointer-events:none;display:none;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12px;box-shadow:0 12px 24px -12px rgba(90,60,120,.5);z-index:3;"></div>' +
+        '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);padding:6px 4px 0;">' +
+          series.map((s,i) => '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:3px;border-radius:2px;background:' + colOf(s,i) + ';"></span>' + labelOf(s) + '</span>').join('') +
+          (showVerse ? '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:0;border-top:2px dashed currentColor;opacity:.5;"></span>versé, sans intérêts</span>' : '') +
         '</div></div>';
+    };
+
+    // survol du graphique (partagé) : ligne repère, un point par courbe, infobulle des valeurs
+    const bindGraphHover = (drawn, f, labelOf, colOf) => {
+      const gEl = $('icGraph'), hit = $('icHit'), cross = $('icCross'), tip = $('icTip'), wrap = $('icGraphWrap');
+      if (!(gEl && hit && drawn.length)) return;
+      const nf = (n) => Math.round(n).toLocaleString('fr-FR');
+      const GW = 620, GH = 190, GPL = 52, GPB = 24, GPT = 12;
+      const GN = Math.max(1, Math.round(f.an * 12));
+      const maxV = Math.max.apply(null, drawn.map(s => Math.max.apply(null, s.pts.map(p => p.v))).concat([1]));
+      const yOf = (v) => GH - GPB - (v / maxV) * (GH - GPB - GPT);
+      const dots = gEl.querySelectorAll('.icDot');
+      const place = (clientX) => {
+        const rect = gEl.getBoundingClientRect();
+        if (!rect.width) return;
+        let m = Math.round(((clientX - rect.left) / rect.width * GW - GPL) / (GW - GPL - 12) * GN);
+        m = Math.max(0, Math.min(GN, m));
+        const px = GPL + (m / GN) * (GW - GPL - 12);
+        cross.setAttribute('x1', px); cross.setAttribute('x2', px); cross.style.opacity = '.4';
+        dots.forEach(d => {
+          const s = drawn[+d.getAttribute('data-s')];
+          if (!s) return;
+          const pt = s.pts[Math.min(m, s.pts.length - 1)];
+          d.setAttribute('cx', px); d.setAttribute('cy', yOf(pt.v).toFixed(1)); d.style.opacity = '1';
+        });
+        const an = m / 12;
+        const lab = m === 0 ? 'Aujourd\'hui' : (m % 12 === 0 ? an + ' an' + (an >= 2 ? 's' : '') : an.toFixed(1).replace('.', ',') + ' an' + (an >= 2 ? 's' : ''));
+        tip.innerHTML = '<div style="font-weight:600;margin-bottom:4px;">' + lab + '</div>' +
+          drawn.map((s, i) => { const pt = s.pts[Math.min(m, s.pts.length - 1)]; return '<div style="display:flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;border-radius:2px;flex:none;background:' + colOf(s, i) + ';"></span><span class="mono">' + labelOf(s) + '&nbsp;·&nbsp;' + nf(pt.v) + ' €</span></div>'; }).join('');
+        tip.style.display = 'block';
+        const wrapW = wrap ? wrap.clientWidth : rect.width;
+        tip.style.left = Math.max(8, Math.min(px / GW * rect.width + 14, wrapW - tip.offsetWidth - 8)) + 'px';
+      };
+      hit.addEventListener('mousemove', (e) => place(e.clientX));
+      hit.addEventListener('mouseleave', () => {
+        cross.style.opacity = '0'; tip.style.display = 'none';
+        dots.forEach(d => { d.style.opacity = '0'; });
+      });
+    };
+
+    // tableau de valeurs — une ligne par année, une colonne par scénario tracé
+    const tableHTML = (series, f, o) => {
+      if (!series.length) return '';
+      o = o || {};
+      const labelOf = o.labelOf || (s => s.tx + ' %');
+      const versePts = o.versePts || series[0].pts;
+      const colOf = (s, i) => s.col || SCOL[i % 4];
+      const nf = (n) => Math.round(n).toLocaleString('fr-FR');
+      const ans = Math.max(1, Math.round(f.an));
+      let rows = '';
+      for (let yv = 0; yv <= ans; yv++) {
+        const vi = Math.min(yv * 12, versePts.length - 1);
+        rows += '<tr style="border-top:1px solid var(--line);">' +
+          '<td style="padding:7px 11px;font-weight:600;">' + (yv === 0 ? 'auj.' : yv + ' an' + (yv >= 2 ? 's' : '')) + '</td>' +
+          '<td class="mono" style="padding:7px 11px;text-align:right;color:var(--ink2);">' + nf(versePts[vi].verse) + ' €</td>' +
+          series.map((s, i) => '<td class="num" style="padding:7px 11px;text-align:right;color:' + colOf(s, i) + ';">' + nf(s.pts[Math.min(yv * 12, s.pts.length - 1)].v) + ' €</td>').join('') +
+          '</tr>';
+      }
+      return '<details style="width:100%;" open><summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--ink2);padding:2px 4px;">Tableau des valeurs, année par année</summary>' +
+        '<div style="width:100%;overflow-x:auto;border-radius:16px;background:var(--soft);padding:4px 6px;margin-top:9px;">' +
+          '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+            '<thead><tr style="color:var(--ink2);font-size:12px;">' +
+              '<th style="padding:9px 11px;text-align:left;">Année</th>' +
+              '<th style="padding:9px 11px;text-align:right;">Versé</th>' +
+              series.map((s, i) => '<th style="padding:9px 11px;text-align:right;color:' + colOf(s, i) + ';">' + labelOf(s) + '</th>').join('') +
+            '</tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table></div></details>';
     };
 
     // scénarios de taux
@@ -375,7 +490,7 @@
     const mouvHTML = () => '<div style="width:100%;display:flex;flex-direction:column;gap:10px;">' +
       '<div style="display:flex;align-items:center;gap:11px;flex-wrap:wrap;">' +
         '<span class="mono" style="font-size:11px;letter-spacing:1px;color:var(--ink2);">MOUVEMENTS PONCTUELS</span>' +
-        '<span style="font-size:12.5px;color:var(--ink2);">primes, héritage, gros achat — repérés en pointillés sur le graphique. Chaque ligne porte son <b>compte</b> : un dépôt grandit au taux choisi, un retrait est prélevé sur le compte désigné.</span>' +
+        '<span style="font-size:12.5px;color:var(--ink2);">primes, héritage, gros achat — repérés en pointillés sur le graphique. Un <b>dépôt</b> s\'ajoute au capital, un <b>retrait</b> en est prélevé, puis le tout grandit au taux de chaque scénario.</span>' +
       '</div>' +
       st.mouvements.map((mv,i) =>
         '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 13px;border-radius:14px;background:var(--soft);">' +
@@ -385,11 +500,6 @@
           '<input data-mvf="' + i + '|d" id="mvd' + i + '" type="month" value="' + mv.d + '" aria-label="Date du mouvement" class="sel" style="height:36px;">' +
           '<input data-mvf="' + i + '|a" id="mva' + i + '" class="fld" inputmode="decimal" value="' + mv.a + '" aria-label="Montant du mouvement" style="width:92px;height:36px;">' +
           '<span class="mono" style="font-size:12.5px;color:var(--ink2);">€</span>' +
-          '<select data-mvf="' + i + '|tx" id="mvt' + i + '" class="sel" aria-label="' + (mv.type === 'retrait' ? 'Compte débité' : 'Support du mouvement') + '" style="height:36px;font-size:12.5px;">' +
-            '<option value="?"' + (mv.tx === undefined || mv.tx === '' || mv.tx === '?' ? ' selected' : '') + '>' + (mv.type === 'retrait' ? '? — depuis le capital' : '? — taux de référence') + '</option>' +
-            PLACEMENTS.filter(p => p.tx !== '?').map(p =>
-              '<option value="' + p.tx + '"' + (String(mv.tx) === String(p.tx) ? ' selected' : '') + '>' + (mv.type === 'retrait' ? 'Depuis ' : '') + p.n + ' · ' + String(p.tx).replace('.',',') + ' %</option>').join('') +
-          '</select>' +
           '<button class="acc" data-mvdel="' + i + '" aria-label="Supprimer ' + mv.label + '" style="width:34px;height:34px;flex:none;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--ink2);"><span class="ic" style="font-size:17px;">delete</span></button>' +
         '</div>').join('') +
       '<button id="mvAdd" class="acc" style="align-self:flex-start;display:inline-flex;align-items:center;gap:7px;padding:10px 16px;min-height:44px;border-radius:12px;background:var(--surface);font-size:13.5px;font-weight:600;box-shadow:0 10px 22px -14px rgba(90,60,120,.5);"><span class="ic" style="font-size:18px;color:var(--acc-amber);">add</span>Ajouter un mouvement</button>' +
@@ -406,30 +516,20 @@
       const simule = (tx) => {
         const r = tx / 100 / 12, N = Math.round(f.an * 12), out = [];
         let v = f.cap, verse = f.cap;
-        const subs = [];
         out.push({ m:0, v, verse });
         for (let m = 1; m <= N; m++) {
           v = v * (1 + r) + f.vers;
           verse += f.vers;
-          subs.forEach(s => { s.v *= (1 + s.r); });
           const dt = new Date(2026, 7 + m, 1);
           const ym = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2,'0');
+          // un dépôt s'ajoute au capital, un retrait en est prélevé ; le tout grandit ensuite au taux du scénario
           st.mouvements.forEach(mv => {
             if (mv.d !== ym) return;
-            const own = parseFloat(mv.tx);
-            const libre = mv.tx === undefined || mv.tx === '' || mv.tx === '?' || isNaN(own);
-            if (mv.type === 'retrait') {
-              // on retire du support désigné s'il existe, sinon du capital principal
-              const src = libre ? null : subs.filter(s => Math.abs(s.r - own / 100 / 12) < 1e-9 && s.v > 0)[0];
-              if (src) src.v = Math.max(0, src.v - mv.a); else v -= mv.a;
-              verse -= mv.a;
-              return;
-            }
-            if (libre) v += mv.a;
-            else subs.push({ v: mv.a, r: own / 100 / 12 });
-            verse += mv.a;
+            const signe = mv.type === 'retrait' ? -1 : 1;
+            v += signe * mv.a;
+            verse += signe * mv.a;
           });
-          out.push({ m, v: v + subs.reduce((a,s) => a + s.v, 0), verse });
+          out.push({ m, v, verse });
         }
         return out;
       };
@@ -462,14 +562,14 @@
       const res = (txt, col) => '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:15px 18px;border-radius:17px;background:' + col + ';font-size:14.5px;"><span class="ic" style="font-size:22px;flex:none;">insights</span><span style="flex:1;min-width:230px;">' + txt + '</span></div>';
       const lbl = (t, inner, suff) => '<div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;">' + t + '</span><span style="display:flex;align-items:center;gap:7px;">' + inner + (suff ? '<span class="mono" style="color:var(--ink2);">' + suff + '</span>' : '') + '</span></div>';
 
-      box.innerHTML =
+      const cardInterets =
         card('Intérêts composés', 'trending_up', 'linear-gradient(135deg,#34D399,#22B4C4)',
           lbl('Capital de départ', fld('tCap', f.cap, 110), '€') +
           lbl('Versement / mois', fld('tVers', f.vers), '€') +
           lbl('Taux de référence', '<input id="tTx" class="fld" value="' + f.tx + '" style="width:76px;">', '%') +
           lbl('Durée', fld('tAn', f.an, 70), 'ans') +
           placementsHTML(f.tx),
-          graphHTML(drawn, f) + scenarHTML() + mouvHTML() +
+          graphHTML(drawn, f) + tableHTML(drawn, f) + scenarHTML() + mouvHTML() +
           (isVar
             ? (series.length
                 ? '<div style="padding:18px 20px;border-radius:17px;background:linear-gradient(135deg,rgba(52,211,153,.16),rgba(34,180,196,.16));display:flex;flex-direction:column;gap:11px;">' +
@@ -485,18 +585,24 @@
                     }).join('') +
                   '</div>'
                 : res('Coche au moins un scénario de taux ci-dessous pour voir les résultats à comparer.', 'var(--soft)'))
-            : res('Au bout de <b>' + f.an + ' ans</b> à <b>' + String(refTx).replace('.',',') + ' %</b>, tu aurais <b class="num" style="font-size:20px;">' + nf(vf) + ' €</b> — dont <b class="mono">' + nf(verses) + ' €</b> versés et <b class="mono">' + nf(vf - verses) + ' €</b> d\'intérêts.', 'linear-gradient(135deg,rgba(52,211,153,.16),rgba(34,180,196,.16))'))) +
+            : res('Au bout de <b>' + f.an + ' ans</b> à <b>' + String(refTx).replace('.',',') + ' %</b>, tu aurais <b class="num" style="font-size:20px;">' + nf(vf) + ' €</b> — dont <b class="mono">' + nf(verses) + ' €</b> versés et <b class="mono">' + nf(vf - verses) + ' €</b> d\'intérêts.', 'linear-gradient(135deg,rgba(52,211,153,.16),rgba(34,180,196,.16))')));
 
+      const cardPret =
         card('Mensualité d\'un prêt', 'account_balance', 'linear-gradient(135deg,#A78BE8,#8CC7F0)',
           lbl('Montant emprunté', fld('pMt', f.pmt, 118), '€') +
           lbl('Taux annuel', fld('pTx', f.ptx, 76), '%') +
           lbl('Durée', fld('pAn', f.pan, 70), 'ans'),
-          res('Tu rembourserais <b class="num" style="font-size:20px;">' + nf(mens) + ' € / mois</b> pendant ' + f.pan + ' ans — le crédit te coûterait <b class="mono">' + nf(cout) + ' €</b> d\'intérêts au total.', 'linear-gradient(135deg,rgba(167,139,232,.18),rgba(140,199,240,.18))')) +
+          res('Tu rembourserais <b class="num" style="font-size:20px;">' + nf(mens) + ' € / mois</b> pendant ' + f.pan + ' ans — le crédit te coûterait <b class="mono">' + nf(cout) + ' €</b> d\'intérêts au total.', 'linear-gradient(135deg,rgba(167,139,232,.18),rgba(140,199,240,.18))'));
 
+      const cardObjectif =
         card('Objectif d\'épargne', 'flag', 'linear-gradient(135deg,#FBBF24,#FF7A45)',
           lbl('Montant visé', fld('oObj', f.obj, 118), '€') +
           lbl('Dans', fld('oAn', f.oan, 70), 'ans'),
           res('Il te faudrait mettre <b class="num" style="font-size:20px;">' + nf(parMois) + ' € de côté chaque mois</b>' + (st.saveMonthly ? ' — tu épargnes actuellement ' + nf(st.saveMonthly) + ' €/mois, soit ' + (parMois > st.saveMonthly ? '<b style="color:var(--acc-red);">' + nf(parMois - st.saveMonthly) + ' € de moins que nécessaire</b>' : '<b style="color:var(--acc-green);">de quoi y arriver</b>') : '') + '.', 'linear-gradient(135deg,rgba(251,191,36,.18),rgba(255,122,69,.18))'));
+
+      box.innerHTML = st.pratTool === 'pret' ? cardPret
+        : st.pratTool === 'objectif' ? cardObjectif
+        : cardInterets;
 
       const bind = (id, key) => { const el = $(id); if (el) el.addEventListener('input', () => { st.taux[key] = parseFloat(el.value) || 0; keepFocus(renderTaux); }); };
       bind('tCap','cap'); bind('tVers','vers'); bind('tAn','an');
@@ -518,11 +624,6 @@
       box.querySelectorAll('[data-mvdel]').forEach(b => b.addEventListener('click', () => {
         st.mouvements.splice(parseInt(b.getAttribute('data-mvdel'), 10), 1); renderTaux();
       }));
-      box.querySelectorAll('select[data-mvf]').forEach(el => el.addEventListener('change', () => {
-        const [i, k] = el.getAttribute('data-mvf').split('|');
-        st.mouvements[+i][k] = el.value;
-        renderTaux();
-      }));
       box.querySelectorAll('input[data-mvf]').forEach(el => el.addEventListener('input', () => {
         const [i, k] = el.getAttribute('data-mvf').split('|');
         st.mouvements[+i][k] = k === 'a' ? (parseFloat(el.value) || 0) : el.value;
@@ -540,6 +641,174 @@
       });
       bind('pMt','pmt'); bind('pTx','ptx'); bind('pAn','pan');
       bind('oObj','obj'); bind('oAn','oan');
+
+      // survol du graphique (fonction partagée)
+      bindGraphHover(drawn, f, (s) => s.tx + ' %', (s, i) => SCOL[i % 4]);
+    };
+
+    // ── simulateur d'épargne multi-comptes ──
+    const renderEpargneMulti = () => {
+      const box = $('pratTool');
+      if (!box) return;
+      const em = st.epargneMulti;
+      const nf = (n) => Math.round(n).toLocaleString('fr-FR');
+      const N = Math.max(1, Math.round(em.an * 12));
+
+      // une projection mois par mois par compte (son taux + son versement), mouvements ciblés
+      const series = em.comptes.map((c, ci) => {
+        const r = (parseFloat(c.tx) || 0) / 100 / 12;
+        let v = c.cap || 0, verse = c.cap || 0;
+        const pts = [{ m:0, v, verse }];
+        for (let m = 1; m <= N; m++) {
+          v = v * (1 + r) + (c.vers || 0);
+          verse += (c.vers || 0);
+          const dt = new Date(2026, 7 + m, 1);
+          const ym = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2,'0');
+          em.mouvements.forEach(mv => {
+            if (mv.d !== ym || +mv.c !== ci) return;
+            const signe = mv.type === 'retrait' ? -1 : 1;
+            v = Math.max(0, v + signe * mv.a);
+            verse += signe * mv.a;
+          });
+          pts.push({ m, v, verse });
+        }
+        return { nom: c.nom || ('Compte ' + (ci + 1)), col: SCOL[ci % 4], pts };
+      });
+      // courbe « Total » = somme des comptes
+      const totalPts = [];
+      for (let m = 0; m <= N; m++) {
+        totalPts.push({
+          m,
+          v: series.reduce((a, s) => a + s.pts[m].v, 0),
+          verse: series.reduce((a, s) => a + s.pts[m].verse, 0)
+        });
+      }
+      const totalSerie = { nom:'Total', col:'var(--ink)', w:3.4, pts: totalPts };
+      const drawn = series.concat([totalSerie]);
+      const last = totalPts[totalPts.length - 1] || { v:0, verse:0 };
+
+      const fld = (id, val, w) => '<input id="' + id + '" class="fld" inputmode="decimal" value="' + val + '" style="width:' + (w || 96) + 'px;">';
+      const card = (titre, ic, g, corps, resu) =>
+        '<div class="card" style="display:flex;flex-direction:column;gap:16px;">' +
+          '<div style="display:flex;align-items:center;gap:13px;">' +
+            '<span style="width:44px;height:44px;flex:none;border-radius:15px;background:' + g + ';display:flex;align-items:center;justify-content:center;color:#fff;"><span class="ic" style="font-size:23px;">' + ic + '</span></span>' +
+            '<h3>' + titre + '</h3></div>' +
+          '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">' + corps + '</div>' +
+          resu +
+        '</div>';
+      const res = (txt, col) => '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:15px 18px;border-radius:17px;background:' + col + ';font-size:14.5px;"><span class="ic" style="font-size:22px;flex:none;">insights</span><span style="flex:1;min-width:230px;">' + txt + '</span></div>';
+      const lbl = (t, inner, suff) => '<div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;font-weight:600;">' + t + '</span><span style="display:flex;align-items:center;gap:7px;">' + inner + (suff ? '<span class="mono" style="color:var(--ink2);">' + suff + '</span>' : '') + '</span></div>';
+
+      const GRAD = 'linear-gradient(135deg,#34D399,#8CC7F0)';
+      const SOFT = 'linear-gradient(135deg,rgba(52,211,153,.16),rgba(140,199,240,.16))';
+
+      // éditeur de comptes
+      const comptesHTML =
+        '<div style="width:100%;display:flex;flex-direction:column;gap:10px;">' +
+          '<span class="mono" style="font-size:11px;letter-spacing:1px;color:var(--ink2);">MES COMPTES</span>' +
+          em.comptes.map((c, ci) =>
+            '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 13px;border-radius:14px;background:var(--soft);">' +
+              '<span style="width:12px;height:12px;flex:none;border-radius:4px;background:' + SCOL[ci % 4] + ';"></span>' +
+              '<input data-cf="' + ci + '|nom" value="' + c.nom + '" aria-label="Nom du compte" style="flex:1;min-width:130px;height:36px;padding:8px 11px;border-radius:10px;border:1.5px solid var(--line);background:var(--field);color:var(--ink);font-family:Fredoka,sans-serif;font-size:13.5px;">' +
+              '<select data-ctx="' + ci + '" class="sel" aria-label="Support du compte" style="height:36px;font-size:12.5px;">' +
+                PLACEMENTS.filter(p => p.tx !== '?').map(p =>
+                  '<option value="' + p.tx + '"' + (String(c.tx) === String(p.tx) ? ' selected' : '') + '>' + p.n + ' · ' + String(p.tx).replace('.',',') + ' %</option>').join('') +
+                '<option value="' + c.tx + '"' + (PLACEMENTS.some(p => String(p.tx) === String(c.tx)) ? '' : ' selected') + '>Autre · ' + String(c.tx).replace('.',',') + ' %</option>' +
+              '</select>' +
+              '<input data-cf="' + ci + '|cap" class="fld" inputmode="decimal" value="' + c.cap + '" aria-label="Solde de départ" style="width:92px;height:36px;"><span class="mono" style="font-size:12.5px;color:var(--ink2);">€ départ</span>' +
+              '<input data-cf="' + ci + '|vers" class="fld" inputmode="decimal" value="' + c.vers + '" aria-label="Versement mensuel" style="width:78px;height:36px;"><span class="mono" style="font-size:12.5px;color:var(--ink2);">€/mois</span>' +
+              '<button class="acc" data-cdel="' + ci + '" aria-label="Supprimer ' + c.nom + '" style="width:34px;height:34px;flex:none;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--ink2);"><span class="ic" style="font-size:17px;">delete</span></button>' +
+            '</div>').join('') +
+          '<button id="cAdd" class="acc" style="align-self:flex-start;display:inline-flex;align-items:center;gap:7px;padding:10px 16px;min-height:44px;border-radius:12px;background:var(--surface);font-size:13.5px;font-weight:600;box-shadow:0 10px 22px -14px rgba(90,60,120,.5);"><span class="ic" style="font-size:18px;color:var(--acc-teal);">add</span>Ajouter un compte</button>' +
+        '</div>';
+
+      // mouvements ponctuels avec compte visé
+      const mouvHTML =
+        '<div style="width:100%;display:flex;flex-direction:column;gap:10px;">' +
+          '<div style="display:flex;align-items:center;gap:11px;flex-wrap:wrap;">' +
+            '<span class="mono" style="font-size:11px;letter-spacing:1px;color:var(--ink2);">MOUVEMENTS PONCTUELS</span>' +
+            '<span style="font-size:12.5px;color:var(--ink2);">primes, héritage, gros achat — repérés en pointillés. Chaque mouvement vise un <b>compte</b> : le dépôt l\'alimente, le retrait y est prélevé.</span>' +
+          '</div>' +
+          em.mouvements.map((mv, i) =>
+            '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 13px;border-radius:14px;background:var(--soft);">' +
+              '<button class="seg" data-emtype="' + i + '" style="min-height:34px;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:600;background:' + (mv.type === 'retrait' ? 'rgba(196,69,59,.16)' : 'rgba(52,211,153,.18)') + ';color:' + (mv.type === 'retrait' ? 'var(--acc-red)' : 'var(--acc-green)') + ';">' +
+                '<span class="ic" style="font-size:15px;">' + (mv.type === 'retrait' ? 'arrow_downward' : 'arrow_upward') + '</span>' + (mv.type === 'retrait' ? 'Retrait' : 'Dépôt') + '</button>' +
+              '<input data-emf="' + i + '|label" value="' + mv.label + '" aria-label="Libellé du mouvement" style="flex:1;min-width:120px;height:36px;padding:8px 11px;border-radius:10px;border:1.5px solid var(--line);background:var(--field);color:var(--ink);font-family:Fredoka,sans-serif;font-size:13.5px;">' +
+              '<input data-emf="' + i + '|d" type="month" value="' + mv.d + '" aria-label="Date du mouvement" class="sel" style="height:36px;">' +
+              '<input data-emf="' + i + '|a" class="fld" inputmode="decimal" value="' + mv.a + '" aria-label="Montant du mouvement" style="width:88px;height:36px;"><span class="mono" style="font-size:12.5px;color:var(--ink2);">€</span>' +
+              '<select data-emc="' + i + '" class="sel" aria-label="Compte visé" style="height:36px;font-size:12.5px;">' +
+                em.comptes.map((c, ci) => '<option value="' + ci + '"' + (+mv.c === ci ? ' selected' : '') + '>' + (mv.type === 'retrait' ? 'Depuis ' : 'Vers ') + (c.nom || ('Compte ' + (ci + 1))) + '</option>').join('') +
+              '</select>' +
+              '<button class="acc" data-emdel="' + i + '" aria-label="Supprimer ' + mv.label + '" style="width:34px;height:34px;flex:none;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--ink2);"><span class="ic" style="font-size:17px;">delete</span></button>' +
+            '</div>').join('') +
+          '<button id="emAdd" class="acc" style="align-self:flex-start;display:inline-flex;align-items:center;gap:7px;padding:10px 16px;min-height:44px;border-radius:12px;background:var(--surface);font-size:13.5px;font-weight:600;box-shadow:0 10px 22px -14px rgba(90,60,120,.5);"><span class="ic" style="font-size:18px;color:var(--acc-amber);">add</span>Ajouter un mouvement</button>' +
+        '</div>';
+
+      const graphOpts = { marks: em.mouvements, showVerse: true, labelOf: s => s.nom, verseFrom: totalPts };
+      const tableOpts = { labelOf: s => s.nom, versePts: totalPts };
+
+      box.innerHTML = card('Épargne multi-comptes', 'account_balance_wallet', GRAD,
+        lbl('Durée', fld('emAn', em.an, 70), 'ans'),
+        comptesHTML +
+        (series.length
+          ? graphHTML(drawn, { an: em.an }, graphOpts) + tableHTML(drawn, { an: em.an }, tableOpts)
+          : res('Ajoute au moins un compte pour voir la projection.', 'var(--soft)')) +
+        mouvHTML +
+        (series.length
+          ? res('Au bout de <b>' + em.an + ' ans</b>, ton épargne totale serait de <b class="num" style="font-size:20px;">' + nf(last.v) + ' €</b> sur <b>' + em.comptes.length + '</b> compte' + (em.comptes.length > 1 ? 's' : '') + ' — dont <b class="mono">' + nf(last.v - last.verse) + ' €</b> d\'intérêts.', SOFT)
+          : ''));
+
+      // ── événements ──
+      const anEl = $('emAn');
+      if (anEl) anEl.addEventListener('input', () => { em.an = parseFloat(anEl.value) || 0; keepFocus(renderEpargneMulti); });
+
+      box.querySelectorAll('input[data-cf]').forEach(el => el.addEventListener('input', () => {
+        const [ci, k] = el.getAttribute('data-cf').split('|');
+        em.comptes[+ci][k] = k === 'nom' ? el.value : (parseFloat(el.value) || 0);
+        keepFocus(renderEpargneMulti);
+      }));
+      box.querySelectorAll('select[data-ctx]').forEach(el => el.addEventListener('change', () => {
+        em.comptes[+el.getAttribute('data-ctx')].tx = parseFloat(el.value) || 0;
+        renderEpargneMulti();
+      }));
+      box.querySelectorAll('[data-cdel]').forEach(b => b.addEventListener('click', () => {
+        const ci = parseInt(b.getAttribute('data-cdel'), 10);
+        em.comptes.splice(ci, 1);
+        // réaligner les mouvements qui visaient un compte supprimé ou décalé
+        em.mouvements.forEach(mv => { if (+mv.c === ci) mv.c = 0; else if (+mv.c > ci) mv.c = +mv.c - 1; });
+        renderEpargneMulti();
+      }));
+      const cAdd = $('cAdd');
+      if (cAdd) cAdd.addEventListener('click', () => {
+        em.comptes.push({ nom:'Nouveau compte', tx:2, cap:1000, vers:50 });
+        renderEpargneMulti();
+      });
+
+      box.querySelectorAll('input[data-emf]').forEach(el => el.addEventListener('input', () => {
+        const [i, k] = el.getAttribute('data-emf').split('|');
+        em.mouvements[+i][k] = k === 'a' ? (parseFloat(el.value) || 0) : el.value;
+        keepFocus(renderEpargneMulti);
+      }));
+      box.querySelectorAll('select[data-emc]').forEach(el => el.addEventListener('change', () => {
+        em.mouvements[+el.getAttribute('data-emc')].c = parseInt(el.value, 10) || 0;
+        renderEpargneMulti();
+      }));
+      box.querySelectorAll('[data-emtype]').forEach(b => b.addEventListener('click', () => {
+        const i = parseInt(b.getAttribute('data-emtype'), 10);
+        em.mouvements[i].type = em.mouvements[i].type === 'depot' ? 'retrait' : 'depot';
+        renderEpargneMulti();
+      }));
+      box.querySelectorAll('[data-emdel]').forEach(b => b.addEventListener('click', () => {
+        em.mouvements.splice(parseInt(b.getAttribute('data-emdel'), 10), 1);
+        renderEpargneMulti();
+      }));
+      const emAdd = $('emAdd');
+      if (emAdd) emAdd.addEventListener('click', () => {
+        em.mouvements.push({ d:'2027-01', label:'Nouveau mouvement', a:1000, type:'depot', c:0 });
+        renderEpargneMulti();
+      });
+
+      bindGraphHover(drawn, { an: em.an }, (s) => s.nom, (s, i) => s.col || SCOL[i % 4]);
     };
 
     const cats = () => st.model === 'custom' ? st.custom : (M[st.model] || M['503020']);

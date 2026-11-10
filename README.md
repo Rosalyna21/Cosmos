@@ -1,6 +1,6 @@
 # Cosmos 🌸✨
 
-Ma plateforme personnelle : jeux, atelier créatif, finances apaisées, outils IA locaux, dashboard et labo ML. Chaque projet est une étoile, l'ensemble forme un tout.
+Ma plateforme personnelle : jeux, atelier créatif, finances apaisées, outils data & IA locaux, dashboard et labo ML. Chaque projet est une étoile, l'ensemble forme un tout.
 
 ## Trois zones : en ligne, brouillons, perso
 
@@ -55,7 +55,7 @@ site/                   → LE SITE : ce dossier EST ce qu'on publie (Git s'init
 ├── dashboard/          → dashboards + créateur
 ├── donnees/            → sauvegarde / export / import des données locales
 ├── a-propos/           → « Ce que ce site ne fait pas » : les limites assumées
-├── ia/                 → boîte à outils IA locale
+├── ia/                 → boîte à outils data & IA locale
 │   ├── transcription/  → speech-to-text Whisper
 │   └── drawdb/         → présentation DrawDB
 ├── labo-ml/            → démos de modèles ML
