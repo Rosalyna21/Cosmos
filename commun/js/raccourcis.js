@@ -7,7 +7,7 @@
              ex. ["budget","donnees"] — donc inclus dans « Mes données ».
 
    ┌─────────────────────────────────────────────────────────┐
-   │  EXERCICE (Aude) : les deux fonctions de la ZONE 1      │
+   │  EXERCICE : les deux fonctions de la ZONE 1             │
    │  sont des brouillons à compléter.                       │
    │  → suivre docs/exercice-raccourcis.md                   │
    │  Tant qu'elles ne sont pas finies, tout fonctionne      │

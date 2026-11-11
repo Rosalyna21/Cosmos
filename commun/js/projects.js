@@ -29,7 +29,7 @@ const CHEMIN = [
     grad: 'linear-gradient(135deg,#34D399,#22B4C4)',
     lien: 'budget/index.html#pratique',
     gares: [
-      { label: 'Calculatrice financière', quoi: 'Calculs rapides, façon calculatrice.', lien: 'budget/index.html#pratique', etat: 'fait' },
+      { label: 'Calculatrice', quoi: 'Calculs rapides, façon calculatrice.', lien: 'budget/index.html#pratique', etat: 'fait' },
       { label: 'Simulateurs', quoi: 'Intérêts, mensualités, objectifs d\'épargne.', lien: 'budget/index.html#pratique', etat: 'fait' },
       /* Partie « finances personnelles » en pause : masquée du menu tant qu'elle
          n'existe pas (sinon la section promet un espace qui n'est pas encore là).

@@ -274,39 +274,36 @@
         ['4','5','6','×','÷'],
         ['1','2','3','+','−'],
         ['0','.','(',')','='],
-        ['xʸ','ⁿ√x','√','ln','%'],
-        ['MC','MR','M+','M−','MS']
+        ['xʸ','ⁿ√x','√','x²','Ans'],
+        ['ln','eˣ','±','π','1/x']
       ];
       box.innerHTML =
         '<div class="card" style="display:flex;flex-direction:column;gap:18px;max-width:520px;margin:0 auto;width:100%;">' +
-          '<p style="margin:0;font-size:14px;color:var(--ink2);line-height:1.55;">Scientifique, avec la <b>racine n-ième</b> (<span class="mono">ⁿ√x</span>) — l\'outil des taux annualisés, pas seulement la racine carrée.</p>' +
-          '<div style="position:relative;padding:18px 20px;border-radius:18px;background:var(--soft);text-align:right;">' +
-            '<span id="calcMem" class="mono" style="position:absolute;left:16px;top:14px;font-size:12px;font-weight:700;color:var(--acc-violet);visibility:hidden;" title="une valeur est en mémoire">M</span>' +
+          '<div style="padding:18px 20px;border-radius:18px;background:var(--soft);text-align:right;">' +
             '<div id="calcExpr" class="mono" style="font-size:13px;color:var(--ink2);min-height:18px;word-break:break-all;"></div>' +
             '<div id="calcOut" class="num" style="font-size:34px;margin-top:4px;word-break:break-all;">0</div>' +
           '</div>' +
           '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:9px;">' +
             KEYS.flat().map(k => {
               const isOp = ['×','÷','+','−','='].indexOf(k) > -1;
-              const isFn = ['xʸ','ⁿ√x','√','ln','%','⌫','C','(',')'].indexOf(k) > -1;
-              const isMem = ['MC','MR','M+','M−','MS'].indexOf(k) > -1;
+              const isFn = ['xʸ','ⁿ√x','√','x²','1/x','ln','eˣ','±','π','⌫','C','(',')'].indexOf(k) > -1;
               return '<button class="seg" data-k="' + k + '" style="min-height:52px;border-radius:14px;font-size:16px;font-weight:600;' +
                 (k === '=' ? 'background:linear-gradient(135deg,#FBBF24,#FF7A45);color:#fff;'
+                  : k === 'Ans' ? 'background:var(--soft);color:var(--acc-violet);font-size:14px;'
                   : isOp ? 'background:var(--soft);color:var(--acc-amber);'
-                  : isMem ? 'background:var(--soft);color:var(--acc-violet);font-size:14px;'
                   : isFn ? 'background:var(--soft);color:var(--ink2);font-size:14px;'
                   : 'background:var(--surface);color:var(--ink);box-shadow:0 8px 18px -12px rgba(90,60,120,.5);') + '">' + k + '</button>';
             }).join('') +
           '</div>' +
           '<div style="font-size:12.5px;color:var(--ink2);"><b class="mono">ⁿ√x</b> : tape la valeur, puis <span class="mono">ⁿ√x</span>, puis l\'indice. Ex. <span class="mono">1,45 ⁿ√x 5 =</span> donne le coefficient annuel d\'un capital multiplié par 1,45 en 5 ans : <b class="mono">1,077</b>, soit <b>+7,7 % par an</b>.</div>' +
-          '<div style="font-size:12.5px;color:var(--ink2);"><b class="mono">MS</b> enregistre le résultat affiché, <b class="mono">MR</b> le réinsère, <b class="mono">M+</b> / <b class="mono">M−</b> l\'ajoutent ou le retranchent, <b class="mono">MC</b> efface la mémoire. Un <b class="mono" style="color:var(--acc-violet);">M</b> s\'allume dans l\'écran tant qu\'une valeur est gardée.</div>' +
+          '<div style="font-size:12.5px;color:var(--ink2);"><b class="mono">Ans</b> réinsère le dernier résultat obtenu. Ex. <span class="mono">200 × 1,05 =</span> puis <span class="mono">12 − Ans</span></div>' +
         '</div>';
 
       let expr = '';
-      let mem = null;   // valeur en mémoire (null = vide)
-      let last = 0;     // dernier résultat calculé, pour MS / M+ / M−
-      const out = $('calcOut'), ex = $('calcExpr'), memBadge = $('calcMem');
-      const refreshMem = () => { if (memBadge) memBadge.style.visibility = (mem === null ? 'hidden' : 'visible'); };
+      let last = 0;     // résultat de l'évaluation courante
+      let ans = 0;      // dernier résultat validé par « = » (la touche Ans)
+      let justEq = false; // vrai juste après « = » : la frappe suivante repart à neuf, sauf un opérateur
+      const out = $('calcOut'), ex = $('calcExpr');
       const show = () => {
         ex.textContent = expr || '';
         try {
@@ -319,19 +316,21 @@
       };
       box.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => {
         const k = b.getAttribute('data-k');
-        if (k === 'C') { expr = ''; out.textContent = '0'; ex.textContent = ''; return; }
-        if (k === '⌫') { expr = expr.slice(0, -1); show(); return; }
-        if (k === '=') { show(); expr = out.textContent.replace(/\s/g,'').replace(',','.'); return; }
-        if (k === 'MS') { mem = last; refreshMem(); return; }        // enregistre le résultat affiché
-        if (k === 'MC') { mem = null; refreshMem(); return; }        // efface la mémoire
-        if (k === 'MR') { if (mem !== null) { expr += String(mem); show(); } return; } // rappelle la valeur
-        if (k === 'M+') { mem = (mem || 0) + last; refreshMem(); return; }
-        if (k === 'M−') { mem = (mem || 0) - last; refreshMem(); return; }
+        if (k === 'C') { expr = ''; out.textContent = '0'; ex.textContent = ''; justEq = false; return; }
+        if (k === '⌫') { justEq = false; expr = expr.slice(0, -1); show(); return; }
+        if (k === '=') { show(); ans = last; expr = out.textContent.replace(/\s/g,'').replace(',','.'); justEq = true; return; }
+        // après « = » : un opérateur enchaîne sur le résultat, tout le reste repart d'une page blanche
+        if (justEq) { if (['×','÷','+','−','xʸ','ⁿ√x','x²','1/x','±'].indexOf(k) < 0) expr = ''; justEq = false; }
+        if (k === 'Ans') { expr += String(ans); show(); return; }   // rappelle le dernier résultat (comme Casio)
+        if (k === '±') { expr = (expr.slice(0,2) === '-(' && expr.slice(-1) === ')') ? expr.slice(2,-1) : '-(' + (expr || '0') + ')'; show(); return; } // change le signe
         if (k === '√') expr += 'Math.sqrt(';
         else if (k === 'ln') expr += 'Math.log(';
+        else if (k === 'eˣ') expr += 'Math.exp(';
         else if (k === 'xʸ') expr += '**';
         else if (k === 'ⁿ√x') expr += '**(1/';
-        else if (k === '%') expr += '/100';
+        else if (k === 'x²') expr += '**2';
+        else if (k === '1/x') expr += '**(-1)';
+        else if (k === 'π') expr += 'Math.PI';
         else expr += k;
         show();
       }));
