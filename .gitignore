@@ -17,6 +17,9 @@ dashboard/
 labo-ml/
 charges-fixes/
 
+# --- Notes internes de maintenance : gardées en local, jamais publiées ---
+README-interne.md
+
 # --- Fichiers créés par Windows / macOS ---
 Thumbs.db
 desktop.ini
