@@ -73,7 +73,7 @@ const CHEMIN = [
    (clé localStorage 'cosmos-raccourcis', donc incluse dans « Mes données »).
    ------------------------------------------------------------ */
 const CATALOGUE_RACCOURCIS = [
-  { id: 'budget',        parent: 'Finances',  label: 'Calculateurs', etat: 'intérêts & taux',     icon: 'calculate',      grad: 'linear-gradient(135deg,#34D399,#22B4C4)', ombre: 'rgba(34,180,180,.85)',  lien: 'budget/index.html#pratique' },
+  { id: 'budget',        parent: 'Finances',  label: 'Calculatrice', etat: 'intérêts & taux',     icon: 'calculate',      grad: 'linear-gradient(135deg,#34D399,#22B4C4)', ombre: 'rgba(34,180,180,.85)',  lien: 'budget/index.html#pratique' },
   { id: 'transcription', parent: 'Outils data & IA', label: 'Transcription', etat: "prêt à l'emploi",   icon: 'graphic_eq',   grad: 'linear-gradient(135deg,#FFC93C,#FF7A45)', ombre: 'rgba(255,140,60,.85)',  lien: 'ia/transcription/index.html' },
   { id: 'donnees',       label: 'Mes données',   etat: 'exporter',          icon: 'database',     grad: 'linear-gradient(135deg,#F472B6,#A855F7)', ombre: 'rgba(168,85,247,.85)',  lien: 'donnees/index.html' },
   { id: 'detente',       label: 'Détente',       etat: 'faire une pause',   icon: 'weekend',      grad: 'linear-gradient(135deg,#F472B6,#A855F7)', ombre: 'rgba(168,85,247,.85)',  lien: 'detente/index.html' },
