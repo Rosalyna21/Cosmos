@@ -593,11 +593,19 @@
           lbl('Durée', fld('pAn', f.pan, 70), 'ans'),
           res('Tu rembourserais <b class="num" style="font-size:20px;">' + nf(mens) + ' € / mois</b> pendant ' + f.pan + ' ans — le crédit te coûterait <b class="mono">' + nf(cout) + ' €</b> d\'intérêts au total.', 'linear-gradient(135deg,rgba(167,139,232,.18),rgba(140,199,240,.18))'));
 
+      // « — tu épargnes actuellement … » : masqué dans le plancher (dépend de st.saveMonthly,
+      // une donnée du chemin de développement pas encore disponible ici, d'où l'incohérence).
+      // À réactiver — ne pas supprimer — dans la version complète : remplacer la ligne active
+      // de compareEpargne par la version commentée juste en dessous.
+      const compareEpargne = '';
+      /* version « chemin de développement » :
+      const compareEpargne = st.saveMonthly ? ' — tu épargnes actuellement ' + nf(st.saveMonthly) + ' €/mois, soit ' + (parMois > st.saveMonthly ? '<b style="color:var(--acc-red);">' + nf(parMois - st.saveMonthly) + ' € de moins que nécessaire</b>' : '<b style="color:var(--acc-green);">de quoi y arriver</b>') : '';
+      */
       const cardObjectif =
         card('Objectif d\'épargne', 'flag', 'linear-gradient(135deg,#FBBF24,#FF7A45)',
           lbl('Montant visé', fld('oObj', f.obj, 118), '€') +
           lbl('Dans', fld('oAn', f.oan, 70), 'ans'),
-          res('Il te faudrait mettre <b class="num" style="font-size:20px;">' + nf(parMois) + ' € de côté chaque mois</b>' + (st.saveMonthly ? ' — tu épargnes actuellement ' + nf(st.saveMonthly) + ' €/mois, soit ' + (parMois > st.saveMonthly ? '<b style="color:var(--acc-red);">' + nf(parMois - st.saveMonthly) + ' € de moins que nécessaire</b>' : '<b style="color:var(--acc-green);">de quoi y arriver</b>') : '') + '.', 'linear-gradient(135deg,rgba(251,191,36,.18),rgba(255,122,69,.18))'));
+          res('Il te faudrait mettre <b class="num" style="font-size:20px;">' + nf(parMois) + ' € de côté chaque mois</b>' + compareEpargne + '.', 'linear-gradient(135deg,rgba(251,191,36,.18),rgba(255,122,69,.18))'));
 
       box.innerHTML = st.pratTool === 'pret' ? cardPret
         : st.pratTool === 'objectif' ? cardObjectif
